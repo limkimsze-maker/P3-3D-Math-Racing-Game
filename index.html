@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v17</title>
+<title>TRON Math Gate Racer v18</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -290,6 +290,96 @@
 
 
 
+
+  #bossWarning {
+    position:fixed;
+    left:50%;
+    top:34%;
+    transform:translate(-50%, -50%) scale(.92);
+    z-index:18;
+    width:min(620px, calc(100vw - 34px));
+    padding:16px 14px;
+    border-radius:22px;
+    text-align:center;
+    font-size:clamp(32px, 9vw, 72px);
+    font-weight:1000;
+    letter-spacing:2px;
+    color:#ff3f5f;
+    background:rgba(18,0,12,.92);
+    border:3px solid #ff3f5f;
+    text-shadow:0 0 18px #ff3f5f, 0 0 34px rgba(255,43,214,.8);
+    box-shadow:0 0 55px rgba(255,63,95,.45), inset 0 0 28px rgba(255,63,95,.12);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+  }
+
+  #bossWarning.show {
+    opacity:1;
+    transform:translate(-50%, -50%) scale(1);
+    animation:bossPulse .55s ease-in-out infinite alternate;
+  }
+
+  #bossWarning small {
+    display:block;
+    margin-top:6px;
+    font-size:clamp(14px, 3.4vw, 22px);
+    color:#eaffff;
+    letter-spacing:1px;
+    text-shadow:0 0 10px #00f5ff;
+  }
+
+  @keyframes bossPulse {
+    from { filter:brightness(1); }
+    to { filter:brightness(1.35); }
+  }
+
+  #bossHpBar {
+    position:fixed;
+    left:50%;
+    top:calc(env(safe-area-inset-top, 0px) + 150px);
+    transform:translateX(-50%);
+    z-index:9;
+    width:min(560px, calc(100vw - 36px));
+    padding:8px 10px 10px;
+    border-radius:16px;
+    background:rgba(20,0,18,.86);
+    border:1px solid rgba(255,63,95,.82);
+    box-shadow:0 0 24px rgba(255,43,214,.28);
+    pointer-events:none;
+    display:none;
+  }
+
+  #bossHpBar.show {
+    display:block;
+  }
+
+  #bossHpText {
+    text-align:center;
+    font-size:13px;
+    font-weight:1000;
+    color:#ffffff;
+    margin-bottom:6px;
+    letter-spacing:1px;
+    text-shadow:0 0 10px #ff2bd6;
+  }
+
+  #bossHpTrack {
+    height:12px;
+    border-radius:999px;
+    overflow:hidden;
+    background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.20);
+  }
+
+  #bossHpFill {
+    height:100%;
+    width:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg, #ff3f5f, #ff2bd6, #ffd45a);
+    box-shadow:0 0 16px rgba(255,63,95,.55);
+  }
+
   #answerFeedback {
     position:fixed;
     left:50%;
@@ -536,6 +626,8 @@ window.addEventListener("error", function(e) {
   </div>
 
   <div id="toast"></div>
+  <div id="bossWarning"></div>
+  <div id="bossHpBar"><div id="bossHpText">BOSS HP</div><div id="bossHpTrack"><div id="bossHpFill"></div></div></div>
   <div id="answerFeedback"></div>
   <div id="speedLines"></div>
   <div id="flash"></div>
@@ -585,6 +677,9 @@ const state = {
   gameOver: false,
   boss: null,
   bossPendingAdvance: false,
+  boss1Done: false,
+  boss2Done: false,
+  finalBossStarted: false,
   finishLine: null,
   boostPad: null
 };
@@ -730,6 +825,9 @@ function startGame() {
   state.gameOver = false;
   state.boss = null;
   state.bossPendingAdvance = false;
+  state.boss1Done = false;
+  state.boss2Done = false;
+  state.finalBossStarted = false;
   state.finishLine = null;
   state.boostPad = null;
 
@@ -1140,12 +1238,54 @@ function makeTextSprite(text, color, kind) {
   return new THREE.Sprite(mat);
 }
 
+
+let bossWarningTimer = null;
+
+function showBossWarning(title) {
+  const el = $("bossWarning");
+  if (!el) return;
+  el.innerHTML = `${title}<small>ALIEN MOTHERSHIP APPROACHING</small>`;
+  el.classList.add("show");
+  clearTimeout(bossWarningTimer);
+  bossWarningTimer = setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+function updateBossHpBar() {
+  const bar = $("bossHpBar");
+  const text = $("bossHpText");
+  const fill = $("bossHpFill");
+  if (!bar || !text || !fill || !state.boss) return;
+
+  bar.classList.add("show");
+  text.textContent = `${state.boss.type} HP ${state.boss.hp}/${state.boss.maxHp}`;
+  const pct = Math.max(0, Math.min(1, state.boss.hp / state.boss.maxHp)) * 100;
+  fill.style.width = `${pct}%`;
+}
+
+function hideBossHpBar() {
+  const bar = $("bossHpBar");
+  if (bar) bar.classList.remove("show");
+}
+
 function startBoss() {
   removeBoss();
+  removeGateSet();
+  alienCooldown = 3.2;
+  state.waitingForNextGate = 1.15;
 
-  const hp = state.table >= state.finalTable ? 4 : 3;
+  let bossType = "FINAL";
+  if (state.table === 4 && !state.boss1Done) bossType = "BOSS 1";
+  else if (state.table === 8 && !state.boss2Done) bossType = "BOSS 2";
+  else bossType = "FINAL BOSS";
+
+  if (bossType === "FINAL BOSS") state.finalBossStarted = true;
+
+  const hp = bossType === "FINAL BOSS" ? 4 : 3;
   const group = makeBossShip();
-  group.position.set(curveAt(-78), 6, -78);
+  group.scale.set(1.8, 1.8, 1.8);
+
+  const startZ = -58;
+  group.position.set(curveAt(startZ), 5.6, startZ);
   scene.add(group);
 
   state.boss = {
@@ -1153,11 +1293,16 @@ function startBoss() {
     hp,
     maxHp: hp,
     openTimer: 0,
-    z: -78
+    z: startZ,
+    targetZ: -26,
+    introTimer: 2.0,
+    type: bossType
   };
 
-  toast(state.table >= state.finalTable ? "Final mothership! Answer, then shoot!" : "Boss ship ahead! Answer correctly to open its shield.");
-  audio.boost();
+  showBossWarning(bossType);
+  toast(`${bossType} approaching! Answer correctly, then shoot the mothership.`);
+  audio.boss();
+  updateBossHpBar();
 }
 
 function makeBossShip() {
@@ -1203,7 +1348,19 @@ function makeBossShip() {
   shield.userData.isBossShield = true;
   group.add(shield);
 
-  const light = new THREE.PointLight(0xff2bd6, 4.5, 20);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff3f5f });
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(.18, 16, 8), eyeMat);
+  eyeL.position.set(-.7, .42, -1.25);
+  const eyeR = eyeL.clone();
+  eyeR.position.x = .7;
+  group.add(eyeL, eyeR);
+
+  const label = makeTextSprite("BOSS", 0xff3f5f, "label");
+  label.position.set(0, 2.4, .15);
+  label.scale.set(4.4, .92, 1);
+  group.add(label);
+
+  const light = new THREE.PointLight(0xff2bd6, 6.5, 34);
   light.position.y = .6;
   group.add(light);
 
@@ -1211,6 +1368,7 @@ function makeBossShip() {
 }
 
 function removeBoss() {
+  hideBossHpBar();
   if (state.boss) {
     scene.remove(state.boss.group);
     state.boss = null;
@@ -1218,12 +1376,19 @@ function removeBoss() {
 }
 
 function updateBoss(dt) {
-  if (!state.boss) return;
+  if (!state.boss) {
+    hideBossHpBar();
+    return;
+  }
 
   const boss = state.boss;
+  if (boss.introTimer > 0) boss.introTimer -= dt;
+  boss.z = THREE.MathUtils.lerp(boss.z, boss.targetZ, 1.35 * dt);
+
   boss.group.position.x = curveAt(boss.z);
   boss.group.position.z = boss.z;
-  boss.group.rotation.y += dt * .45;
+  boss.group.position.y = 5.6 + Math.sin(performance.now() * .0022) * .35;
+  boss.group.rotation.y += dt * .55;
   boss.group.rotation.z = Math.sin(performance.now() * .0012) * .08;
 
   if (boss.openTimer > 0) {
@@ -1232,8 +1397,10 @@ function updateBoss(dt) {
 
   const shield = boss.group.children.find(child => child.userData && child.userData.isBossShield);
   if (shield && shield.material) {
-    shield.material.opacity = boss.openTimer > 0 ? .04 : .22;
+    shield.material.opacity = boss.openTimer > 0 ? .04 : .28;
   }
+
+  updateBossHpBar();
 }
 
 function animate() {
@@ -1446,7 +1613,11 @@ function correctAnswer() {
 }
 
 function shouldStartBoss() {
-  return state.table === 4 || state.table === 8 || state.table >= state.finalTable;
+  if (state.boss || state.finishLine) return false;
+  if (state.table === 4 && !state.boss1Done) return true;
+  if (state.table === 8 && !state.boss2Done && state.finalTable >= 8) return true;
+  if (state.table >= state.finalTable && !state.finalBossStarted) return true;
+  return false;
 }
 
 function wrongAnswer(chosen, answer) {
@@ -1580,8 +1751,8 @@ function hitBoss(laser) {
   if (!state.boss) return false;
   const boss = state.boss;
 
-  if (Math.abs(laser.group.position.x - boss.group.position.x) < 3.2 &&
-      Math.abs(laser.group.position.z - boss.z) < 2.6) {
+  if (Math.abs(laser.group.position.x - boss.group.position.x) < 5.4 &&
+      Math.abs(laser.group.position.z - boss.z) < 4.5) {
     if (boss.openTimer <= 0) {
       toast("Boss shield is closed. Answer correctly first!");
       burst(laser.group.position.x, 1.4, laser.group.position.z, 0xff2bd6, 8);
@@ -1591,6 +1762,7 @@ function hitBoss(laser) {
 
     boss.hp--;
     boss.openTimer = 0;
+    updateBossHpBar();
     state.score += 300;
     burst(boss.group.position.x, 6, boss.z, 0xffd45a, 34);
     audio.boom();
@@ -1609,10 +1781,17 @@ function hitBoss(laser) {
 function defeatBoss() {
   if (!state.boss) return;
 
-  const final = state.table >= state.finalTable;
+  const defeatedType = state.boss.type || "";
+  const final = defeatedType === "FINAL BOSS" || state.table >= state.finalTable;
+
   burst(state.boss.group.position.x, 6, state.boss.z, 0xffd45a, 60);
   scene.remove(state.boss.group);
   state.boss = null;
+  hideBossHpBar();
+
+  if (defeatedType === "BOSS 1") state.boss1Done = true;
+  if (defeatedType === "BOSS 2") state.boss2Done = true;
+
   state.score += final ? 1000 : 500;
   audio.win();
 
@@ -1625,6 +1804,7 @@ function defeatBoss() {
     state.correctInTable = 0;
     state.ammo = Math.min(15, state.ammo + 4);
     state.boostCharges = Math.min(7, state.boostCharges + 2);
+    state.waitingForNextGate = .9;
     toast(`Boss defeated! Checkpoint reached — entering ×${state.table}.`);
   }
 }
@@ -1862,18 +2042,16 @@ function nextBossGateInfo() {
   if (state.finishLine) return { label: "FINISH", count: 0 };
 
   if (state.boss) {
-    const isFinalBoss = state.table >= state.finalTable;
-    let label = isFinalBoss ? "FINAL HP" : (state.table <= 4 ? "BOSS 1 HP" : "BOSS 2 HP");
-    return { label, count: state.boss.hp };
+    return { label: `${state.boss.type} HP`, count: state.boss.hp };
   }
 
   let bossTable = state.finalTable;
   let label = "TO FINAL";
 
-  if (state.table <= 4 && state.finalTable >= 4) {
+  if (!state.boss1Done && state.table <= 4 && state.finalTable >= 4) {
     bossTable = 4;
     label = "TO BOSS 1";
-  } else if (state.table <= 8 && state.finalTable >= 8) {
+  } else if (!state.boss2Done && state.table <= 8 && state.finalTable >= 8) {
     bossTable = 8;
     label = "TO BOSS 2";
   } else {
@@ -2160,6 +2338,7 @@ function createAudio() {
     accel: (power=.7) => { sweep(180 + power*90, 320 + power*180, .10, .028 + power*.012); },
     boom: () => { beep(90, .17, "sawtooth", .075); setTimeout(() => beep(220, .08, "square", .04), 75); },
     boost: () => sweep(200, 1500, .30, .05),
+    boss: () => { sweep(120, 520, .42, .065); setTimeout(() => beep(88, .22, "sawtooth", .06), 180); },
     win: () => [440, 660, 880, 1320].forEach((f, i) => setTimeout(() => beep(f, .12, "triangle", .055), i * 90))
   };
 }
