@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v16</title>
+<title>TRON Math Gate Racer v17</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -293,14 +293,14 @@
   #answerFeedback {
     position:fixed;
     left:50%;
-    top:50%;
+    top:38%;
     transform:translate(-50%, -50%) scale(.92);
     z-index:12;
-    min-width:min(520px, calc(100vw - 44px));
-    padding:20px 18px;
-    border-radius:24px;
+    min-width:min(260px, calc(100vw - 84px));
+    padding:10px 14px;
+    border-radius:16px;
     text-align:center;
-    font-size:clamp(42px, 12vw, 88px);
+    font-size:clamp(22px, 6vw, 42px);
     line-height:1;
     font-weight:1000;
     letter-spacing:1px;
@@ -310,7 +310,7 @@
     background:rgba(0,10,28,.86);
     border:3px solid rgba(255,255,255,.25);
     text-shadow:0 0 18px currentColor;
-    box-shadow:0 0 45px rgba(255,255,255,.15), inset 0 0 30px rgba(255,255,255,.06);
+    box-shadow:0 0 24px rgba(255,255,255,.12), inset 0 0 16px rgba(255,255,255,.05);
   }
 
   #answerFeedback.show {
@@ -497,7 +497,7 @@ window.addEventListener("error", function(e) {
     <h1>TRON Math<br>Gate Racer v7</h1>
     <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon TRON finish portal.</p><p>The counter shows gates left to the next boss. Default: 12 gates to Boss 1.</p>
     <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
-    <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, 5× max speed, boss gate counter, shooting, boss ships, and a neon TRON finish line.</p>
+    <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, 5× max speed, boss gate counter, shooting sounds, acceleration sounds, boss ships, and a neon TRON finish line.</p>
     <div class="row">
       <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame()">Start Race</button>
       <button id="teacherBtn" class="bigBtn" onclick="var t=document.getElementById('teacher'); if(t) t.classList.toggle('open');">Teacher Mode</button>
@@ -558,6 +558,8 @@ let distance = 0;
 let accelHeld = false;
 let brakeHeld = false;
 let accelCharge = 0;
+let alienCooldown = 0;
+let accelSoundCooldown = 0;
 
 const LANE_X = [-5.2, 0, 5.2];
 const PLAYER_Z = 8.2;
@@ -720,6 +722,7 @@ function startGame() {
   state.score = 0;
   state.lives = 5;
   state.ammo = 4;
+  alienCooldown = Math.max(alienCooldown, 1.8);
   state.streak = 0;
   state.correctInTable = 0;
   state.countdown = 2.0;
@@ -736,6 +739,8 @@ function startGame() {
   accelHeld = false;
   brakeHeld = false;
   accelCharge = 0;
+  alienCooldown = 1.8;
+  accelSoundCooldown = 0;
   const accelBtn = $("accelBtn"); if (accelBtn) accelBtn.classList.remove("down");
   const brakeBtn = $("brakeBtn"); if (brakeBtn) brakeBtn.classList.remove("down");
   updateThrottleHud();
@@ -1255,6 +1260,14 @@ function update(dt) {
     state.boost = Math.max(state.boost, 11.5);
   }
 
+  alienCooldown = Math.max(0, alienCooldown - dt);
+  accelSoundCooldown = Math.max(0, accelSoundCooldown - dt);
+
+  if (accelHeld && accelSoundCooldown <= 0) {
+    audio.accel(0.45 + accelCharge * 0.55);
+    accelSoundCooldown = 0.18;
+  }
+
   if (accelHeld) {
     accelCharge = Math.min(1, accelCharge + dt * 0.55);
   } else if (brakeHeld) {
@@ -1356,6 +1369,7 @@ function updateGate(scroll, dt) {
     }
 
     state.waitingForNextGate = .72;
+    alienCooldown = 2.1;
     setTimeout(() => removeGateSet(), 130);
   }
 
@@ -1387,6 +1401,7 @@ function smashGate(chosenLane, isCorrect) {
 
 function correctAnswer() {
   showAnswerFeedback(true);
+  alienCooldown = Math.max(alienCooldown, 1.8);
   state.streak++;
   state.score += 120 + state.streak * 22;
   state.ammo = Math.min(15, state.ammo + 1);
@@ -1448,6 +1463,7 @@ function wrongAnswer(chosen, answer) {
 
 function shieldBlocked() {
   showAnswerFeedback(false);
+  alienCooldown = Math.max(alienCooldown, 1.8);
   state.streak = 0;
   state.lives--;
   state.speed = Math.max(state.baseSpeed * 0.55, state.speed - 1.5);
@@ -1615,8 +1631,9 @@ function defeatBoss() {
 
 function maybeSpawnAlien() {
   if (state.countdown > 0 || state.boss) return;
+  if (gateSet || state.waitingForNextGate > 0 || alienCooldown > 0) return;
   if (aliens.length >= 4) return;
-  const chance = state.table >= 6 ? .012 : .006;
+  const chance = state.table >= 6 ? .010 : .0045;
   if (Math.random() > chance) return;
 
   const group = makeAlien();
@@ -1892,7 +1909,7 @@ function showAnswerFeedback(isCorrect) {
   feedbackTimer = setTimeout(() => {
     el.classList.remove("show");
     document.body.classList.remove("feedback-correct", "feedback-wrong");
-  }, 720);
+  }, 430);
 }
 
 function spawnFinishLine(z) {
@@ -2139,7 +2156,8 @@ function createAudio() {
     tap: () => beep(650, .06, "square", .035),
     correct: () => { sweep(300, 1250, .25, .055); setTimeout(() => beep(1450, .08, "triangle", .04), 95); },
     wrong: () => { beep(130, .15, "sawtooth", .065); setTimeout(() => beep(85, .16, "sawtooth", .055), 95); },
-    shoot: () => sweep(850, 240, .13, .045),
+    shoot: () => sweep(980, 220, .14, .065),
+    accel: (power=.7) => { sweep(180 + power*90, 320 + power*180, .10, .028 + power*.012); },
     boom: () => { beep(90, .17, "sawtooth", .075); setTimeout(() => beep(220, .08, "square", .04), 75); },
     boost: () => sweep(200, 1500, .30, .05),
     win: () => [440, 660, 880, 1320].forEach((f, i) => setTimeout(() => beep(f, .12, "triangle", .055), i * 90))
@@ -2164,4 +2182,4 @@ if (document.readyState !== "loading") {
 }
 </script>
 </body>
-  </html>
+</html>
