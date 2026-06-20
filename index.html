@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v10</title>
+<title>TRON Math Gate Racer v11</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -57,7 +57,7 @@
 
   #stats {
     display:grid;
-    grid-template-columns:repeat(5, 1fr);
+    grid-template-columns:repeat(6, 1fr);
     gap:6px;
     margin-bottom:7px;
   }
@@ -289,6 +289,57 @@
   }
 
 
+
+  #answerFeedback {
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%) scale(.92);
+    z-index:12;
+    min-width:min(520px, calc(100vw - 44px));
+    padding:20px 18px;
+    border-radius:24px;
+    text-align:center;
+    font-size:clamp(42px, 12vw, 88px);
+    line-height:1;
+    font-weight:1000;
+    letter-spacing:1px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+    background:rgba(0,10,28,.86);
+    border:3px solid rgba(255,255,255,.25);
+    text-shadow:0 0 18px currentColor;
+    box-shadow:0 0 45px rgba(255,255,255,.15), inset 0 0 30px rgba(255,255,255,.06);
+  }
+
+  #answerFeedback.show {
+    opacity:1;
+    transform:translate(-50%, -50%) scale(1);
+  }
+
+  #answerFeedback.correct {
+    color:#6bff63;
+    border-color:#6bff63;
+    box-shadow:0 0 55px rgba(107,255,99,.42), inset 0 0 34px rgba(107,255,99,.12);
+  }
+
+  #answerFeedback.wrong {
+    color:#ff3f5f;
+    border-color:#ff3f5f;
+    box-shadow:0 0 55px rgba(255,63,95,.42), inset 0 0 34px rgba(255,63,95,.12);
+  }
+
+  body.feedback-correct #questionBox {
+    border-color:#6bff63;
+    box-shadow:0 0 28px rgba(107,255,99,.40), 0 0 58px rgba(107,255,99,.18);
+  }
+
+  body.feedback-wrong #questionBox {
+    border-color:#ff3f5f;
+    box-shadow:0 0 28px rgba(255,63,95,.42), 0 0 58px rgba(255,63,95,.18);
+  }
+
   #speedLines {
     position:fixed;
     inset:0;
@@ -351,6 +402,7 @@ window.addEventListener("error", function(e) {
       <div class="stat"><span>SPEED</span><b id="speedHud">0</b></div>
       <div class="stat"><span>AMMO</span><b id="ammoHud">3</b></div>
       <div class="stat"><span>BOOST</span><b id="boostHud">0</b></div>
+      <div class="stat"><span>GATES LEFT</span><b id="gatesHud">0</b></div>
       <div class="stat"><span>LIVES</span><b id="livesHud">5</b></div>
       <div class="stat"><span>SCORE</span><b id="scoreHud">0</b></div>
     </div>
@@ -409,9 +461,9 @@ window.addEventListener("error", function(e) {
         </label>
         <label>Race speed
           <select id="speedChoice">
-            <option value="12.5">Fast</option>
-            <option value="15" selected>Hyper</option>
-            <option value="18">Extreme</option>
+            <option value="9.4">Fast</option>
+            <option value="11.25" selected>Hyper</option>
+            <option value="13.5">Extreme</option>
           </select>
         </label>
       </div>
@@ -420,6 +472,7 @@ window.addEventListener("error", function(e) {
   </div>
 
   <div id="toast"></div>
+  <div id="answerFeedback"></div>
   <div id="speedLines"></div>
   <div id="flash"></div>
 </div>
@@ -445,8 +498,8 @@ const ROAD_Z_NEAR = 24;
 const ROAD_Z_FAR = -270;
 
 const state = {
-  speed: 15,
-  baseSpeed: 15,
+  speed: 11.25,
+  baseSpeed: 11.25,
   boost: 0,
   boostCharges: 0,
   boostTimer: 0,
@@ -462,7 +515,8 @@ const state = {
   waitingForNextGate: 0,
   gameOver: false,
   boss: null,
-  bossPendingAdvance: false
+  bossPendingAdvance: false,
+  finishLine: null
 };
 
 let currentQuestion = null;
@@ -481,6 +535,7 @@ const hud = {
   boost: $("boostHud"),
   lives: $("livesHud"),
   score: $("scoreHud"),
+  gates: $("gatesHud"),
   question: $("question"),
   objective: $("objective")
 };
@@ -580,7 +635,7 @@ function startGame() {
   state.table = s;
   state.finalTable = f;
   state.needCorrect = Math.max(3, Math.min(12, parseInt($("needCorrect").value, 10) || 5));
-  state.baseSpeed = parseFloat($("speedChoice").value) || 15;
+  state.baseSpeed = parseFloat($("speedChoice").value) || 11.25;
   state.speed = state.baseSpeed;
   state.boost = 0;
   state.boostCharges = 1;
@@ -595,6 +650,7 @@ function startGame() {
   state.gameOver = false;
   state.boss = null;
   state.bossPendingAdvance = false;
+  state.finishLine = null;
 
   distance = 0;
   lane = 1;
@@ -1112,16 +1168,17 @@ function update(dt) {
 
   if (state.boostTimer > 0) {
     state.boostTimer -= dt;
-    state.boost = Math.max(state.boost, 34);
+    state.boost = Math.max(state.boost, 25.5);
   }
 
   const speed = state.speed + state.boost;
-  const boostSurge = state.boostTimer > 0 ? 1.35 : 1;
+  const boostSurge = state.boostTimer > 0 ? 1.22 : 1;
   const scroll = speed * dt * 1.08 * boostSurge;
 
   updateRoad(scroll);
   updateGate(scroll, dt);
   updateBoss(dt);
+  updateFinishLine(scroll, dt);
   updateAliens(scroll, dt);
   updateLasers(dt);
   updateParticles(dt);
@@ -1129,7 +1186,7 @@ function update(dt) {
 
   if (state.waitingForNextGate > 0) {
     state.waitingForNextGate -= dt;
-    if (state.waitingForNextGate <= 0 && !state.gameOver) {
+    if (state.waitingForNextGate <= 0 && !state.gameOver && !state.finishLine) {
       makeQuestion();
       spawnGateSet(-130);
     }
@@ -1228,12 +1285,13 @@ function smashGate(chosenLane, isCorrect) {
 }
 
 function correctAnswer() {
+  showAnswerFeedback(true);
   state.streak++;
   state.score += 120 + state.streak * 22;
   state.ammo = Math.min(15, state.ammo + 1);
   state.boostCharges = Math.min(6, state.boostCharges + (state.streak % 3 === 0 ? 2 : 1));
-  state.boost = Math.min(24, state.boost + 7.2);
-  state.speed = Math.min(state.baseSpeed + 8, state.speed + 1.4);
+  state.boost = Math.min(18, state.boost + 5.4);
+  state.speed = Math.min(state.baseSpeed + 6, state.speed + 1.05);
   audio.correct();
 
   if (state.boss) {
@@ -1247,7 +1305,7 @@ function correctAnswer() {
   if (state.streak > 0 && state.streak % 5 === 0) {
     state.boostCharges = Math.min(7, state.boostCharges + 2);
     state.ammo = Math.min(15, state.ammo + 3);
-    state.boost = Math.min(28, state.boost + 8);
+    state.boost = Math.min(21, state.boost + 6);
     toast("Overdrive streak! Extra ammo and boost!");
     audio.boost();
   } else {
@@ -1276,6 +1334,7 @@ function shouldStartBoss() {
 }
 
 function wrongAnswer(chosen, answer) {
+  showAnswerFeedback(false);
   state.streak = 0;
   state.score = Math.max(0, state.score - 35);
   state.speed = Math.max(7, state.speed - 1.2);
@@ -1287,6 +1346,7 @@ function wrongAnswer(chosen, answer) {
 }
 
 function shieldBlocked() {
+  showAnswerFeedback(false);
   state.streak = 0;
   state.lives--;
   state.speed = Math.max(7, state.speed - 1.5);
@@ -1306,7 +1366,7 @@ function useBoost() {
 
   state.boostCharges--;
   state.boostTimer = 2.15;
-  state.boost = Math.max(state.boost, 34);
+  state.boost = Math.max(state.boost, 25.5);
   flash(0x8dff3f);
   audio.boost();
   toast("HYPER BOOST!");
@@ -1440,7 +1500,9 @@ function defeatBoss() {
   audio.win();
 
   if (final) {
-    win();
+    state.finishLine = spawnFinishLine(-125);
+    state.waitingForNextGate = 0;
+    toast("Final boss defeated! Cross the TRON finish line!");
   } else {
     state.table++;
     state.correctInTable = 0;
@@ -1590,6 +1652,7 @@ function updateHud() {
   hud.boost.textContent = state.boostCharges;
   hud.lives.textContent = state.lives;
   hud.score.textContent = state.score;
+  if (hud.gates) hud.gates.textContent = gatesRemaining();
 
   if (state.boss) {
     hud.objective.textContent = `Boss battle: answer correctly to open shield, then shoot. Boss HP ${state.boss.hp}/${state.boss.maxHp}`;
@@ -1601,6 +1664,7 @@ function updateHud() {
 function clearObjects() {
   removeGateSet();
   removeBoss();
+  removeFinishLine();
 
   for (const arr of [aliens, lasers, particles]) {
     while (arr.length) {
@@ -1610,16 +1674,150 @@ function clearObjects() {
   }
 }
 
+
+function gatesRemaining() {
+  let total = 0;
+
+  if (state.finishLine) return 0;
+
+  if (!state.boss) {
+    total += Math.max(0, state.needCorrect - state.correctInTable);
+  } else {
+    total += Math.max(0, state.boss.hp);
+  }
+
+  // Future normal answer gates.
+  const nextTable = state.boss ? state.table + 1 : state.table + 1;
+  for (let t = nextTable; t <= state.finalTable; t++) {
+    total += state.needCorrect;
+  }
+
+  // Future boss answer gates: after ×4, ×8, and final table.
+  const bossTables = [4, 8, state.finalTable];
+  for (const b of bossTables) {
+    if (b < state.table || b > state.finalTable) continue;
+    if (state.boss && b === state.table) continue;
+    if (!state.boss && b === state.table && state.correctInTable >= state.needCorrect) continue;
+    total += b >= state.finalTable ? 4 : 3;
+  }
+
+  return Math.max(0, total);
+}
+
+let feedbackTimer = null;
+function showAnswerFeedback(isCorrect) {
+  const el = $("answerFeedback");
+  if (!el) return;
+
+  el.textContent = isCorrect ? "CORRECT!" : "WRONG!";
+  el.classList.remove("correct", "wrong", "show");
+  document.body.classList.remove("feedback-correct", "feedback-wrong");
+
+  void el.offsetWidth;
+
+  el.classList.add(isCorrect ? "correct" : "wrong", "show");
+  document.body.classList.add(isCorrect ? "feedback-correct" : "feedback-wrong");
+
+  clearTimeout(feedbackTimer);
+  feedbackTimer = setTimeout(() => {
+    el.classList.remove("show");
+    document.body.classList.remove("feedback-correct", "feedback-wrong");
+  }, 720);
+}
+
+function spawnFinishLine(z) {
+  removeGateSet();
+  const group = new THREE.Group();
+
+  const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .92 });
+  const pinkMat = new THREE.MeshBasicMaterial({ color: 0xff2bd6, transparent: true, opacity: .84 });
+  const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .96 });
+  const blackMat = new THREE.MeshBasicMaterial({ color: 0x02030b, transparent: true, opacity: .96 });
+
+  // TRON portal frame
+  const top = new THREE.Mesh(new THREE.BoxGeometry(16.5, .28, .28), cyanMat);
+  top.position.y = 5.2;
+  const left = new THREE.Mesh(new THREE.BoxGeometry(.28, 8.6, .28), cyanMat);
+  left.position.set(-8.2, 1.0, 0);
+  const right = left.clone();
+  right.position.x = 8.2;
+
+  const top2 = new THREE.Mesh(new THREE.BoxGeometry(13.2, .18, .18), pinkMat);
+  top2.position.y = 4.45;
+
+  group.add(top, left, right, top2);
+
+  // Checkered finish strip on the road
+  const tileSize = .65;
+  for (let x = -8; x < 8; x += tileSize) {
+    for (let row = 0; row < 3; row++) {
+      const mat = ((Math.floor((x + 8) / tileSize) + row) % 2 === 0) ? whiteMat : blackMat;
+      const tile = new THREE.Mesh(new THREE.BoxGeometry(tileSize, .08, .48), mat);
+      tile.position.set(x + tileSize / 2, .10, row * .52 - .52);
+      group.add(tile);
+    }
+  }
+
+  const label = makeTextSprite("FINISH", 0x00f5ff, "label");
+  label.position.set(0, 3.55, .12);
+  label.scale.set(5.6, 1.0, 1);
+  group.add(label);
+
+  const portalLabel = makeTextSprite("TRON PORTAL", 0xff2bd6, "label");
+  portalLabel.position.set(0, 2.75, .12);
+  portalLabel.scale.set(5.2, .88, 1);
+  group.add(portalLabel);
+
+  const light = new THREE.PointLight(0x00f5ff, 5.5, 28);
+  light.position.set(0, 3.5, 0);
+  group.add(light);
+
+  group.position.set(curveAt(z), 0, z);
+  scene.add(group);
+
+  return { group, z, crossed:false };
+}
+
+function updateFinishLine(scroll, dt) {
+  if (!state.finishLine) return;
+
+  state.finishLine.z += scroll;
+  state.finishLine.group.position.x = curveAt(state.finishLine.z);
+  state.finishLine.group.position.z = state.finishLine.z;
+  state.finishLine.group.rotation.y = Math.sin(performance.now() * .001) * .02;
+
+  if (!state.finishLine.crossed && state.finishLine.z >= PLAYER_Z - 1.5) {
+    state.finishLine.crossed = true;
+    burst(player.position.x, 2.2, PLAYER_Z - 1.0, 0x00f5ff, 55);
+    burst(player.position.x, 1.1, PLAYER_Z - .6, 0xff2bd6, 35);
+    flash(0x6bff63);
+    audio.win();
+    setTimeout(win, 380);
+  }
+
+  if (state.finishLine && state.finishLine.z > PLAYER_Z + 28) {
+    removeFinishLine();
+  }
+}
+
+function removeFinishLine() {
+  if (state.finishLine) {
+    scene.remove(state.finishLine.group);
+    state.finishLine = null;
+  }
+}
+
 function win() {
   const speedLines = $("speedLines");
   if (speedLines) speedLines.classList.remove("on");
   state.gameOver = true;
   removeGateSet();
   removeBoss();
+  removeFinishLine();
   $("center").classList.remove("hidden");
   $("center").innerHTML = `
     <h1>Mission Complete!</h1>
-    <p>You cleared the final TRON portal and escaped the alien grid.</p>
+    <p>You crossed the neon TRON finishing line and escaped the alien grid.</p>
     <p><b>Score:</b> ${state.score} &nbsp; <b>Best streak:</b> ${state.streak}</p>
     <p><b>Rank:</b> ${state.score >= 9000 ? "TRON Math Champion" : state.score >= 5500 ? "Hyper Racer" : "Neon Blaster"}</p>
     <div class="row"><button class="bigBtn" onclick="location.reload()">Race Again</button></div>
