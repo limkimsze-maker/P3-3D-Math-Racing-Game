@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v11</title>
+<title>TRON Math Gate Racer v12</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -409,7 +409,7 @@ window.addEventListener("error", function(e) {
     <div id="questionBox">
       <div id="question">2 × 4 = ?</div>
       <div id="objective">Objective: clear ×2 to ×12 and escape through the final TRON portal.</div>
-      <div id="instruction">Bash through the numbered 3D gate. Use 🚀 Hyper Boost and ⚡ Shoot.</div>
+      <div id="instruction">TRON grid race: bash through the correct gate. Use 🚀 Boost and ⚡ Shoot.</div>
     </div>
   </div>
 
@@ -431,9 +431,9 @@ window.addEventListener("error", function(e) {
 
   <div id="center">
     <h1>TRON Math<br>Gate Racer v7</h1>
-    <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then escape through the final TRON portal.</p>
+    <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon TRON finish portal.</p>
     <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
-    <p>New challenges: stronger bends, alien blockers, shield gates, boss battles, hyper boost acceleration, and shooting.</p>
+    <p>Inspired by arcade racers: clear lanes, checkpoints, boost pads, shooting, boss ships, and a neon TRON finish line.</p>
     <div class="row">
       <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame()">Start Race</button>
       <button id="teacherBtn" class="bigBtn" onclick="var t=document.getElementById('teacher'); if(t) t.classList.toggle('open');">Teacher Mode</button>
@@ -461,9 +461,9 @@ window.addEventListener("error", function(e) {
         </label>
         <label>Race speed
           <select id="speedChoice">
-            <option value="9.4">Fast</option>
-            <option value="11.25" selected>Hyper</option>
-            <option value="13.5">Extreme</option>
+            <option value="5.8">Practice</option>
+            <option value="7.2" selected>Arcade</option>
+            <option value="8.8">Fast</option>
           </select>
         </label>
       </div>
@@ -498,8 +498,8 @@ const ROAD_Z_NEAR = 24;
 const ROAD_Z_FAR = -270;
 
 const state = {
-  speed: 11.25,
-  baseSpeed: 11.25,
+  speed: 7.2,
+  baseSpeed: 7.2,
   boost: 0,
   boostCharges: 0,
   boostTimer: 0,
@@ -516,7 +516,8 @@ const state = {
   gameOver: false,
   boss: null,
   bossPendingAdvance: false,
-  finishLine: null
+  finishLine: null,
+  boostPad: null
 };
 
 let currentQuestion = null;
@@ -635,7 +636,7 @@ function startGame() {
   state.table = s;
   state.finalTable = f;
   state.needCorrect = Math.max(3, Math.min(12, parseInt($("needCorrect").value, 10) || 5));
-  state.baseSpeed = parseFloat($("speedChoice").value) || 11.25;
+  state.baseSpeed = parseFloat($("speedChoice").value) || 7.2;
   state.speed = state.baseSpeed;
   state.boost = 0;
   state.boostCharges = 1;
@@ -651,6 +652,7 @@ function startGame() {
   state.boss = null;
   state.bossPendingAdvance = false;
   state.finishLine = null;
+  state.boostPad = null;
 
   distance = 0;
   lane = 1;
@@ -658,7 +660,7 @@ function startGame() {
 
   clearObjects();
   makeQuestion();
-  spawnGateSet(-125);
+  spawnGateSet(-165);
 
   running = true;
   paused = false;
@@ -835,19 +837,19 @@ function buildStars() {
 }
 
 function curveStrength() {
-  // Strong visible bends from the start.
+  // TRON-like S-bends, but kept playable for pupils.
   // Controls remain simple: left lane, middle lane, right lane.
-  if (state.table <= 3) return 2.6;
-  if (state.table <= 5) return 3.4;
-  if (state.table <= 8) return 4.3;
-  return 5.2;
+  if (state.table <= 3) return 1.6;
+  if (state.table <= 5) return 2.2;
+  if (state.table <= 8) return 2.9;
+  return 3.5;
 }
 
 function curveAt(z) {
   const amp = curveStrength();
-  // Two sine waves give a flowing S-bend highway instead of a flat straight road.
-  return Math.sin(distance * .045 + z * .045) * amp +
-         Math.sin(distance * .020 + z * .026) * amp * .45;
+  // Smooth TRON S-bends. Visible, but not too hard to control.
+  return Math.sin(distance * .030 + z * .032) * amp +
+         Math.sin(distance * .014 + z * .020) * amp * .35;
 }
 
 function updateRoad(scroll) {
@@ -924,7 +926,7 @@ function spawnGateSet(z) {
     if (i !== correctLane) options[i] = wrongs[wi++];
   }
 
-  const shieldActive = !state.boss && state.table >= 5 && Math.random() < .32;
+  const shieldActive = !state.boss && state.table >= 6 && Math.random() < .22;
   const shieldLane = shieldActive ? correctLane : -1;
 
   const group = new THREE.Group();
@@ -1168,27 +1170,29 @@ function update(dt) {
 
   if (state.boostTimer > 0) {
     state.boostTimer -= dt;
-    state.boost = Math.max(state.boost, 25.5);
+    state.boost = Math.max(state.boost, 11.5);
   }
 
   const speed = state.speed + state.boost;
-  const boostSurge = state.boostTimer > 0 ? 1.22 : 1;
+  const boostSurge = state.boostTimer > 0 ? 1.10 : 1;
   const scroll = speed * dt * 1.08 * boostSurge;
 
   updateRoad(scroll);
   updateGate(scroll, dt);
   updateBoss(dt);
   updateFinishLine(scroll, dt);
+  updateBoostPad(scroll, dt);
   updateAliens(scroll, dt);
   updateLasers(dt);
   updateParticles(dt);
   maybeSpawnAlien();
+  maybeSpawnBoostPad();
 
   if (state.waitingForNextGate > 0) {
     state.waitingForNextGate -= dt;
     if (state.waitingForNextGate <= 0 && !state.gameOver && !state.finishLine) {
       makeQuestion();
-      spawnGateSet(-130);
+      spawnGateSet(-170);
     }
   }
 
@@ -1290,8 +1294,8 @@ function correctAnswer() {
   state.score += 120 + state.streak * 22;
   state.ammo = Math.min(15, state.ammo + 1);
   state.boostCharges = Math.min(6, state.boostCharges + (state.streak % 3 === 0 ? 2 : 1));
-  state.boost = Math.min(18, state.boost + 5.4);
-  state.speed = Math.min(state.baseSpeed + 6, state.speed + 1.05);
+  state.boost = Math.min(12, state.boost + 3.6);
+  state.speed = Math.min(state.baseSpeed + 3.2, state.speed + .55);
   audio.correct();
 
   if (state.boss) {
@@ -1305,7 +1309,7 @@ function correctAnswer() {
   if (state.streak > 0 && state.streak % 5 === 0) {
     state.boostCharges = Math.min(7, state.boostCharges + 2);
     state.ammo = Math.min(15, state.ammo + 3);
-    state.boost = Math.min(21, state.boost + 6);
+    state.boost = Math.min(14, state.boost + 4);
     toast("Overdrive streak! Extra ammo and boost!");
     audio.boost();
   } else {
@@ -1322,7 +1326,7 @@ function correctAnswer() {
       state.score += 260;
       state.ammo = Math.min(15, state.ammo + 2);
       state.boostCharges = Math.min(7, state.boostCharges + 1);
-      toast(`Stage cleared. Now ×${state.table}.`);
+      toast(`Checkpoint cleared! Now entering ×${state.table}.`);
     } else {
       startBoss();
     }
@@ -1365,8 +1369,8 @@ function useBoost() {
   }
 
   state.boostCharges--;
-  state.boostTimer = 2.15;
-  state.boost = Math.max(state.boost, 25.5);
+  state.boostTimer = 1.6;
+  state.boost = Math.max(state.boost, 11.5);
   flash(0x8dff3f);
   audio.boost();
   toast("HYPER BOOST!");
@@ -1508,14 +1512,14 @@ function defeatBoss() {
     state.correctInTable = 0;
     state.ammo = Math.min(15, state.ammo + 4);
     state.boostCharges = Math.min(7, state.boostCharges + 2);
-    toast(`Boss defeated! Entering ×${state.table}.`);
+    toast(`Boss defeated! Checkpoint reached — entering ×${state.table}.`);
   }
 }
 
 function maybeSpawnAlien() {
   if (state.countdown > 0 || state.boss) return;
   if (aliens.length >= 4) return;
-  const chance = state.table >= 6 ? .020 : .012;
+  const chance = state.table >= 6 ? .012 : .006;
   if (Math.random() > chance) return;
 
   const group = makeAlien();
@@ -1665,6 +1669,7 @@ function clearObjects() {
   removeGateSet();
   removeBoss();
   removeFinishLine();
+  removeBoostPad();
 
   for (const arr of [aliens, lasers, particles]) {
     while (arr.length) {
@@ -1674,6 +1679,68 @@ function clearObjects() {
   }
 }
 
+
+
+function maybeSpawnBoostPad() {
+  if (state.boostPad || state.boss || state.finishLine || gateSet || state.countdown > 0) return;
+  if (Math.random() > .010) return;
+
+  const laneIndex = randInt(0, 2);
+  const z = -120;
+  const group = new THREE.Group();
+
+  const padMat = new THREE.MeshBasicMaterial({ color: 0x8dff3f, transparent: true, opacity: .78 });
+  const pad = new THREE.Mesh(new THREE.BoxGeometry(3.8, .08, 2.1), padMat);
+  pad.position.y = .12;
+  group.add(pad);
+
+  const arrow = makeTextSprite("BOOST PAD", 0x8dff3f, "label");
+  arrow.position.set(0, .8, .02);
+  arrow.scale.set(3.8, .7, 1);
+  group.add(arrow);
+
+  const light = new THREE.PointLight(0x8dff3f, 2.5, 12);
+  light.position.set(0, 1.0, 0);
+  group.add(light);
+
+  group.position.set(curveAt(z) + LANE_X[laneIndex], 0, z);
+  scene.add(group);
+
+  state.boostPad = { group, lane: laneIndex, z, used:false };
+}
+
+function updateBoostPad(scroll, dt) {
+  if (!state.boostPad) return;
+
+  const b = state.boostPad;
+  b.z += scroll;
+  b.group.position.x = curveAt(b.z) + LANE_X[b.lane];
+  b.group.position.z = b.z;
+  b.group.rotation.y = Math.sin(performance.now() * .002) * .05;
+
+  if (!b.used && b.z >= PLAYER_Z - 1.2 && b.z <= PLAYER_Z + 1.4 && b.lane === targetLane) {
+    b.used = true;
+    state.boost = Math.max(state.boost, 10);
+    state.boostTimer = Math.max(state.boostTimer, .9);
+    burst(player.position.x, .8, PLAYER_Z - 1.0, 0x8dff3f, 18);
+    flash(0x8dff3f);
+    audio.boost();
+    toast("Boost pad!");
+    removeBoostPad();
+    return;
+  }
+
+  if (b.z > PLAYER_Z + 18) {
+    removeBoostPad();
+  }
+}
+
+function removeBoostPad() {
+  if (state.boostPad) {
+    scene.remove(state.boostPad.group);
+    state.boostPad = null;
+  }
+}
 
 function gatesRemaining() {
   let total = 0;
@@ -1804,6 +1871,7 @@ function removeFinishLine() {
   if (state.finishLine) {
     scene.remove(state.finishLine.group);
     state.finishLine = null;
+  state.boostPad = null;
   }
 }
 
@@ -1814,6 +1882,7 @@ function win() {
   removeGateSet();
   removeBoss();
   removeFinishLine();
+  removeBoostPad();
   $("center").classList.remove("hidden");
   $("center").innerHTML = `
     <h1>Mission Complete!</h1>
@@ -1978,4 +2047,4 @@ if (document.readyState !== "loading") {
 }
 </script>
 </body>
-</html>
+  </html>
