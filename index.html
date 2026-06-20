@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer</title>
+<title>TRON Math Gate Racer v6</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -327,7 +327,7 @@
     </div>
     <div id="questionBox">
       <div id="question">2 × 4 = ?</div>
-      <div id="instruction">Drive through the numbered 3D gate. That gate is your answer.</div>
+      <div id="instruction">Bash through the numbered 3D gate. That gate is your answer.</div>
       <div id="laneHint">
         <div>◀ Left lane</div>
         <div>Middle lane</div>
@@ -352,10 +352,10 @@
   </div>
 
   <div id="center">
-    <h1>TRON Math<br>Gate Racer</h1>
+    <h1>TRON Math<br>Gate Racer v6</h1>
     <p>Race on a neon grid. Each round shows one Math fact question.</p>
     <p>Three big 3D gates appear on the track. <b>Pass through the gate with the correct number.</b></p>
-    <p>Correct gate = boost + ammo. Shoot alien ships for bonus points.</p>
+    <p>Correct gate = smash through the answer + boost + ammo. Shoot alien ships for bonus points.</p>
     <div class="row">
       <button id="startBtn" class="bigBtn">Start Race</button>
       <button id="teacherBtn" class="bigBtn">Teacher Mode</button>
@@ -383,9 +383,9 @@
         </label>
         <label>Speed
           <select id="speedChoice">
-            <option value="6.5" selected>Very slow</option>
-            <option value="8.5">Slow</option>
-            <option value="10.5">Normal</option>
+            <option value="9.5">Steady</option>
+            <option value="12.5" selected>Fast</option>
+            <option value="15.5">Hyper</option>
           </select>
         </label>
       </div>
@@ -414,8 +414,8 @@ const LANE_X = [-5.2, 0, 5.2];
 const PLAYER_Z = 8.2;
 
 const state = {
-  speed: 6.5,
-  baseSpeed: 6.5,
+  speed: 12.5,
+  baseSpeed: 12.5,
   boost: 0,
   score: 0,
   lives: 5,
@@ -514,7 +514,7 @@ function startGame() {
   state.table = s;
   state.finalTable = f;
   state.needCorrect = Math.max(3, Math.min(12, parseInt($("needCorrect").value, 10) || 5));
-  state.baseSpeed = parseFloat($("speedChoice").value) || 6.5;
+  state.baseSpeed = parseFloat($("speedChoice").value) || 12.5;
 
   state.speed = state.baseSpeed;
   state.boost = 0;
@@ -533,7 +533,7 @@ function startGame() {
 
   clearObjects();
   makeQuestion();
-  spawnGateSet(-74);
+  spawnGateSet(-96);
 
   running = true;
   paused = false;
@@ -544,7 +544,7 @@ function startGame() {
   $("controls").classList.remove("hidden");
 
   updateHud();
-  toast("Get ready. Drive through the numbered 3D gate.");
+  toast("Get ready. Bash through the correct numbered gate.");
   audio.boost();
 }
 
@@ -927,9 +927,9 @@ function update(dt) {
   }
 
   const speed = (state.speed + state.boost);
-  updateTrack(speed * dt);
-  updateGate(speed * dt);
-  updateAliens(speed * dt, dt);
+  updateTrack(speed * dt * 1.08);
+  updateGate(speed * dt * 1.08);
+  updateAliens(speed * dt * 1.08, dt);
   updateLasers(dt);
   updateParticles(dt);
   spawnAlien();
@@ -938,7 +938,7 @@ function update(dt) {
     state.waitingForNextGate -= dt;
     if (state.waitingForNextGate <= 0) {
       makeQuestion();
-      spawnGateSet(-84);
+      spawnGateSet(-104);
     }
   }
 
@@ -988,20 +988,41 @@ function updateGate(scroll) {
   gateSet.group.position.z += scroll;
   gateSet.group.rotation.y = Math.sin(performance.now() * .001) * .015;
 
+  // Animate broken gate pieces after impact.
+  if (gateSet.answered) {
+    for (const gate of gateSet.group.children) {
+      for (const part of gate.children) {
+        if (part.userData.smashVel) {
+          part.position.addScaledVector(part.userData.smashVel, .035);
+          part.rotation.x += .16;
+          part.rotation.y += .12;
+          if (part.material && "opacity" in part.material) {
+            part.material.opacity = Math.max(0, part.material.opacity - .045);
+          }
+        }
+      }
+    }
+  }
+
   const z = gateSet.group.position.z;
 
-  // Trigger when the player's ship is inside the plane of the gates.
+  // Trigger when the player's ship smashes into the gate plane.
   if (!gateSet.answered && z >= PLAYER_Z - 1.5) {
     gateSet.answered = true;
     const chosen = lane;
+    const chosenNumber = gateSet.options[chosen];
+    const isCorrect = chosen === gateSet.correctLane;
 
-    if (chosen === gateSet.correctLane) {
+    smashChosenGate(chosen, isCorrect);
+
+    if (isCorrect) {
       correctAnswer();
     } else {
-      wrongAnswer(gateSet.options[chosen], currentQuestion.answer);
+      wrongAnswer(chosenNumber, currentQuestion.answer);
     }
 
-    state.waitingForNextGate = 1.05;
+    state.waitingForNextGate = .72;
+    setTimeout(() => removeGateSet(), 120);
   }
 
   if (z > PLAYER_Z + 18) {
@@ -1009,24 +1030,48 @@ function updateGate(scroll) {
   }
 }
 
+function smashChosenGate(chosenLane, isCorrect) {
+  if (!gateSet) return;
+
+  const color = isCorrect ? 0x00f5ff : 0xff3f5f;
+  const x = LANE_X[chosenLane];
+
+  burst(x, 2.2, PLAYER_Z - 1.4, color, isCorrect ? 34 : 24);
+  burst(x, .75, PLAYER_Z - 1.0, color, isCorrect ? 18 : 12);
+
+  // Push the chosen gate pieces apart for a quick "bash through" feeling.
+  const chosenGate = gateSet.group.children[chosenLane];
+  if (chosenGate) {
+    chosenGate.children.forEach((part, index) => {
+      part.userData.smashVel = new THREE.Vector3(
+        (index % 2 === 0 ? -1 : 1) * randFloat(2.2, 5.2),
+        randFloat(.8, 3.8),
+        randFloat(1.5, 5.5)
+      );
+    });
+  }
+
+  flash(color);
+}
+
 function correctAnswer() {
   state.streak++;
   state.correctInTable++;
   state.score += 120 + state.streak * 20;
   state.ammo = Math.min(12, state.ammo + 1);
-  state.boost = Math.min(10, state.boost + 3.3);
-  state.speed = Math.min(state.baseSpeed + 4, state.speed + .75);
+  state.boost = Math.min(16, state.boost + 5.0);
+  state.speed = Math.min(state.baseSpeed + 6, state.speed + 1.2);
   flash(0x00f5ff);
   burst(player.position.x, 1.0, PLAYER_Z - 1.6, 0x00f5ff, 18);
   audio.correct();
 
   if (state.streak > 0 && state.streak % 5 === 0) {
-    state.boost = Math.min(14, state.boost + 4);
+    state.boost = Math.min(20, state.boost + 5);
     state.ammo = Math.min(12, state.ammo + 3);
     toast("Overdrive! 5 correct in a row.");
     audio.boost();
   } else {
-    toast("Correct gate! Boost + ammo.");
+    toast("Correct! You smashed through the answer gate!");
   }
 
   if (state.correctInTable >= state.needCorrect) {
@@ -1051,7 +1096,7 @@ function wrongAnswer(chosen, answer) {
   flash(0xff3f5f);
   burst(player.position.x, 1.0, PLAYER_Z - 1.6, 0xff3f5f, 14);
   audio.wrong();
-  toast(`${chosen} is not ${answer}. Drive into the next correct gate.`);
+  toast(`${chosen} is not ${answer}. You bashed the wrong gate!`);
   if (state.lives <= 0) lose();
 }
 
@@ -1097,7 +1142,7 @@ function shoot() {
 function updateLasers(dt) {
   for (let i = lasers.length - 1; i >= 0; i--) {
     const l = lasers[i];
-    l.group.position.z -= 70 * dt;
+    l.group.position.z -= 90 * dt;
 
     let hit = false;
     for (let j = aliens.length - 1; j >= 0; j--) {
