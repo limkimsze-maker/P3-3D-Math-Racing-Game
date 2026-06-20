@@ -488,7 +488,7 @@ const state = {
   questionsPerTable: 5,
   correctThisTable: 0,
   answeredTotal: 0,
-  nextGateZ: -115,
+  nextGateZ: -95,
   nextAlienZ: -260,
   nextOrbZ: -160,
   bossActive: false,
@@ -578,8 +578,8 @@ function init() {
   scene.fog = new THREE.FogExp2(0x02040d, 0.028);
 
   camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 600);
-  camera.position.set(0, 8.6, 16);
-  camera.lookAt(0, 1.4, -30);
+  camera.position.set(0, 5.6, 14);
+  camera.lookAt(0, 1.2, -24);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -666,7 +666,7 @@ function startGame() {
   clearRaceObjects();
   spawnGates();
   updateLaneAnswerHud();
-  toast("Get ready. The race is slower and answers are shown under the question.");
+  toast("Get ready. Drive toward the numbered 3D gates and pass through your answer.");
   sound.boost();
 }
 
@@ -760,6 +760,29 @@ function buildTrack() {
     hoop.position.set(0, 5.2, -35 - i * 30);
     hoop.userData.hoop = true;
     trackGroup.add(hoop);
+  }
+
+  // Side beacons to show motion and depth
+  for (let i = 0; i < 18; i++) {
+    const z = -8 - i * 13;
+    for (const side of [-1, 1]) {
+      const beacon = new THREE.Group();
+      const col = i % 2 ? 0x00f5ff : 0xff2bd6;
+      const pole = new THREE.Mesh(
+        new THREE.BoxGeometry(.22, 2.2, .22),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .72 })
+      );
+      pole.position.y = 1.1;
+      const lamp = new THREE.Mesh(
+        new THREE.BoxGeometry(.55, .18, .55),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .95 })
+      );
+      lamp.position.y = 2.2;
+      beacon.add(pole, lamp);
+      beacon.position.set(side * 8.9, 0, z);
+      beacon.userData.sideBeacon = true;
+      trackGroup.add(beacon);
+    }
   }
 }
 
@@ -863,7 +886,7 @@ function makeQuestion() {
   const options = shuffle([answer, ...Array.from(wrongs)]);
   currentQuestion = { a, b, answer, options };
   hud.question.textContent = `${a} × ${b} = ?`;
-  hud.sub.textContent = `Choose the correct gate. Tap left/right twice if the gate is far. Streak: ${state.streak}`;
+  hud.sub.textContent = `Pass through the numbered 3D gate to choose your answer. Streak: ${state.streak}`;
 }
 
 function spawnGates() {
@@ -885,38 +908,50 @@ function spawnGates() {
   for (let i = 0; i < 3; i++) {
     const x = laneXs[i];
     const gate = makeAnswerGate(optionForLane[i], i === correctLane, gateColor[i]);
-    gate.position.set(x, 2.05, z);
+    gate.position.set(x, 2.25, z);
     group.add(gate);
   }
 
   scene.add(group);
   gates.push({ group, z, correctLane, optionForLane, passed: false, question: {...currentQuestion} });
-  state.nextGateZ -= 85;
+  state.nextGateZ -= 90;
 }
 
 function makeAnswerGate(answer, correct, color) {
   const group = new THREE.Group();
-  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: correct ? .88 : .68 });
-  const dimMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .28 });
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: correct ? .94 : .80 });
+  const dimMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .34 });
+  const panelMat = new THREE.MeshBasicMaterial({ color: 0x031326, transparent: true, opacity: .92 });
 
-  const post1 = new THREE.Mesh(new THREE.BoxGeometry(.22, 4.2, .22), mat);
-  post1.position.x = -1.78;
+  const post1 = new THREE.Mesh(new THREE.BoxGeometry(.30, 4.9, .30), mat);
+  post1.position.x = -2.05;
   const post2 = post1.clone();
-  post2.position.x = 1.78;
-  const top = new THREE.Mesh(new THREE.BoxGeometry(3.75, .22, .22), mat);
-  top.position.y = 2.1;
-  const floor = new THREE.Mesh(new THREE.BoxGeometry(3.8, .08, 1.55), dimMat);
-  floor.position.set(0, -2.0, 0);
+  post2.position.x = 2.05;
+  const top = new THREE.Mesh(new THREE.BoxGeometry(4.35, .28, .28), mat);
+  top.position.y = 2.45;
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(4.45, .09, 1.85), dimMat);
+  floor.position.set(0, -2.35, 0);
 
-  group.add(post1, post2, top, floor);
+  const backPanel = new THREE.Mesh(new THREE.BoxGeometry(3.15, 1.55, .08), panelMat);
+  backPanel.position.set(0, .55, -.10);
+
+  const headerPanel = new THREE.Mesh(new THREE.BoxGeometry(2.55, .54, .08), panelMat);
+  headerPanel.position.set(0, 1.72, -.10);
+
+  group.add(post1, post2, top, floor, backPanel, headerPanel);
 
   const sprite = makeTextSprite(String(answer), color);
-  sprite.position.set(0, .55, .04);
-  sprite.scale.set(4.0, 1.75, 1);
+  sprite.position.set(0, .55, .08);
+  sprite.scale.set(5.2, 2.45, 1);
   group.add(sprite);
 
-  const halo = new THREE.PointLight(color, correct ? 3.0 : 1.4, 10);
-  halo.position.set(0, .7, .2);
+  const smallTag = makeSmallTag("ANSWER", color);
+  smallTag.position.set(0, 1.72, .08);
+  smallTag.scale.set(2.75, .55, 1);
+  group.add(smallTag);
+
+  const halo = new THREE.PointLight(color, correct ? 3.4 : 2.0, 12);
+  halo.position.set(0, .9, .3);
   group.add(halo);
 
   return group;
@@ -924,11 +959,11 @@ function makeAnswerGate(answer, correct, color) {
 
 function makeTextSprite(text, color=0x00f5ff) {
   const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 128;
+  canvas.width = 512;
+  canvas.height = 256;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.font = "900 82px system-ui, Segoe UI, sans-serif";
+  ctx.font = "900 156px system-ui, Segoe UI, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
@@ -937,13 +972,36 @@ function makeTextSprite(text, color=0x00f5ff) {
   ctx.shadowColor = css;
   ctx.shadowBlur = 18;
   ctx.fillStyle = "rgba(0,0,0,.58)";
-  roundRect(ctx, 10, 18, 236, 92, 24);
+  roundRect(ctx, 18, 30, 476, 190, 34);
   ctx.fill();
   ctx.strokeStyle = css;
-  ctx.lineWidth = 5;
+  ctx.lineWidth = 8;
   ctx.stroke();
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(text, 128, 66);
+  ctx.fillText(text, 256, 132);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  return new THREE.Sprite(mat);
+}
+
+function makeSmallTag(text, color=0x00f5ff) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.font = "900 64px system-ui, Segoe UI, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const c = new THREE.Color(color);
+  const css = `rgb(${Math.floor(c.r*255)},${Math.floor(c.g*255)},${Math.floor(c.b*255)})`;
+  ctx.shadowColor = css;
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(text, 256, 64);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -1104,7 +1162,7 @@ function update(dt) {
   if (aliens.length < 6) spawnAlien();
   if (orbs.length < 3) spawnOrb();
 
-  const effectiveSpeed = state.speed + state.boost;
+  const effectiveSpeed = (state.speed + state.boost) * 1.12;
   const scroll = effectiveSpeed * dt;
 
   updatePlayer(dt);
@@ -1144,6 +1202,10 @@ function updateTrack(scroll, dt) {
       child.position.z += scroll;
       child.rotation.z = Math.sin(performance.now() * .001 + child.position.z) * .04;
       if (child.position.z > 18) child.position.z -= 210;
+    }
+    if (child.userData.sideBeacon) {
+      child.position.z += scroll * 1.12;
+      if (child.position.z > 18) child.position.z -= 234;
     }
   });
 
@@ -1438,8 +1500,8 @@ function endGame(won) {
 function renderScene(dt) {
   if (player) {
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, player.position.x * .32, 3.5 * dt);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 8.5 + state.boost * .018, 2.5 * dt);
-    camera.lookAt(player.position.x * .18, 1.45, -30);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 5.5 + state.boost * .04, 2.5 * dt);
+    camera.lookAt(player.position.x * .18, 1.1, -24);
   }
   renderer.render(scene, camera);
 }
