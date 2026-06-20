@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v15</title>
+<title>TRON Math Gate Racer v16</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -465,13 +465,13 @@ window.addEventListener("error", function(e) {
       <div class="stat"><span>SPEED</span><b id="speedHud">0</b></div>
       <div class="stat"><span>AMMO</span><b id="ammoHud">3</b></div>
       <div class="stat"><span>THROTTLE</span><b id="boostHud">100%</b></div>
-      <div class="stat"><span>GATES LEFT</span><b id="gatesHud">0</b></div>
+      <div class="stat"><span id="gatesLabel">TO BOSS 1</span><b id="gatesHud">12</b></div>
       <div class="stat"><span>LIVES</span><b id="livesHud">5</b></div>
       <div class="stat"><span>SCORE</span><b id="scoreHud">0</b></div>
     </div>
     <div id="questionBox">
       <div id="question">2 × 4 = ?</div>
-      <div id="objective">Objective: clear ×2 to ×12 and escape through the final TRON portal. Hold ACCEL to build speed up to 3×.</div>
+      <div id="objective">Objective: clear ×2 to ×12 and escape through the final TRON portal. Hold ACCEL to build speed up to 5×.</div>
       <div id="instruction">TRON grid race: steer, hold ACCEL to build speed, use BRAKE to slow down, shoot, and bash through the correct gate.</div>
     </div>
   </div>
@@ -495,9 +495,9 @@ window.addEventListener("error", function(e) {
 
   <div id="center">
     <h1>TRON Math<br>Gate Racer v7</h1>
-    <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon TRON finish portal.</p>
+    <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon TRON finish portal.</p><p>The counter shows gates left to the next boss. Default: 12 gates to Boss 1.</p>
     <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
-    <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, shooting, boss ships, and a neon TRON finish line.</p>
+    <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, 5× max speed, boss gate counter, shooting, boss ships, and a neon TRON finish line.</p>
     <div class="row">
       <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame()">Start Race</button>
       <button id="teacherBtn" class="bigBtn" onclick="var t=document.getElementById('teacher'); if(t) t.classList.toggle('open');">Teacher Mode</button>
@@ -507,7 +507,7 @@ window.addEventListener("error", function(e) {
         <label>Start table
           <select id="startTable">
             <option value="2">×2</option><option value="3">×3</option><option value="4">×4</option>
-            <option value="5">×5</option><option value="6">×6</option><option value="7">×7</option>
+            <option value="4">×5</option><option value="6">×6</option><option value="7">×7</option>
             <option value="8">×8</option><option value="9">×9</option><option value="10">×10</option>
             <option value="11">×11</option><option value="12">×12</option>
           </select>
@@ -576,7 +576,7 @@ const state = {
   streak: 0,
   table: 2,
   finalTable: 12,
-  needCorrect: 5,
+  needCorrect: 4,
   correctInTable: 0,
   countdown: 0,
   waitingForNextGate: 0,
@@ -604,6 +604,7 @@ const hud = {
   lives: $("livesHud"),
   score: $("scoreHud"),
   gates: $("gatesHud"),
+  gatesLabel: $("gatesLabel"),
   question: $("question"),
   objective: $("objective")
 };
@@ -1262,15 +1263,15 @@ function update(dt) {
     accelCharge = Math.max(0, accelCharge - dt * 0.75);
   }
 
-  let throttleTarget = state.baseSpeed * (1 + 2 * accelCharge); // up to 3x cruising speed
+  let throttleTarget = state.baseSpeed * (1 + 4 * accelCharge); // up to 5x cruising speed
   if (brakeHeld) {
     throttleTarget = Math.min(throttleTarget, state.baseSpeed * 0.45);
   }
 
   state.speed = THREE.MathUtils.lerp(state.speed, throttleTarget, brakeHeld ? 4.5 * dt : 2.2 * dt);
 
-  const speed = state.speed + state.boost;
-  const boostSurge = state.boostTimer > 0 ? 1.10 : 1;
+  const speed = Math.min(state.speed + state.boost, state.baseSpeed * 5);
+  const boostSurge = state.boostTimer > 0 ? 1.06 : 1;
   const scroll = speed * dt * 1.08 * boostSurge;
 
   updateRoad(scroll);
@@ -1752,12 +1753,14 @@ function updateHud() {
   hud.boost.textContent = state.boostCharges;
   hud.lives.textContent = state.lives;
   hud.score.textContent = state.score;
-  if (hud.gates) hud.gates.textContent = gatesRemaining();
+  const bossGateInfo = nextBossGateInfo();
+  if (hud.gates) hud.gates.textContent = bossGateInfo.count;
+  if (hud.gatesLabel) hud.gatesLabel.textContent = bossGateInfo.label;
 
   if (state.boss) {
     hud.objective.textContent = `Boss battle: answer correctly to open shield, then shoot. Boss HP ${state.boss.hp}/${state.boss.maxHp}`;
   } else {
-    hud.objective.textContent = `Objective: ×${state.table} stage — correct gates ${state.correctInTable}/${state.needCorrect}. Curved highway active. Final endpoint: ×${state.finalTable} portal.`;
+    hud.objective.textContent = `Objective: ×${state.table} stage — correct gates ${state.correctInTable}/${state.needCorrect}. Counter shows gates to next boss. Final endpoint: ×${state.finalTable} portal.`;
   }
 }
 
@@ -1838,33 +1841,37 @@ function removeBoostPad() {
   }
 }
 
-function gatesRemaining() {
-  let total = 0;
+function nextBossGateInfo() {
+  if (state.finishLine) return { label: "FINISH", count: 0 };
 
-  if (state.finishLine) return 0;
+  if (state.boss) {
+    const isFinalBoss = state.table >= state.finalTable;
+    let label = isFinalBoss ? "FINAL HP" : (state.table <= 4 ? "BOSS 1 HP" : "BOSS 2 HP");
+    return { label, count: state.boss.hp };
+  }
 
-  if (!state.boss) {
-    total += Math.max(0, state.needCorrect - state.correctInTable);
+  let bossTable = state.finalTable;
+  let label = "TO FINAL";
+
+  if (state.table <= 4 && state.finalTable >= 4) {
+    bossTable = 4;
+    label = "TO BOSS 1";
+  } else if (state.table <= 8 && state.finalTable >= 8) {
+    bossTable = 8;
+    label = "TO BOSS 2";
   } else {
-    total += Math.max(0, state.boss.hp);
+    bossTable = state.finalTable;
+    label = "TO FINAL";
   }
 
-  // Future normal answer gates.
-  const nextTable = state.boss ? state.table + 1 : state.table + 1;
-  for (let t = nextTable; t <= state.finalTable; t++) {
-    total += state.needCorrect;
-  }
+  // Gates left before the next boss appears.
+  // Example default: start at ×2, boss 1 after ×4.
+  // ×2, ×3, ×4 with 4 correct each = 12 gates to boss 1.
+  const remainingThisTable = Math.max(0, state.needCorrect - state.correctInTable);
+  const futureTablesBeforeBoss = Math.max(0, bossTable - state.table);
+  const count = remainingThisTable + futureTablesBeforeBoss * state.needCorrect;
 
-  // Future boss answer gates: after ×4, ×8, and final table.
-  const bossTables = [4, 8, state.finalTable];
-  for (const b of bossTables) {
-    if (b < state.table || b > state.finalTable) continue;
-    if (state.boss && b === state.table) continue;
-    if (!state.boss && b === state.table && state.correctInTable >= state.needCorrect) continue;
-    total += b >= state.finalTable ? 4 : 3;
-  }
-
-  return Math.max(0, total);
+  return { label, count: Math.max(0, count) };
 }
 
 let feedbackTimer = null;
@@ -2157,4 +2164,4 @@ if (document.readyState !== "loading") {
 }
 </script>
 </body>
-</html>
+  </html>
