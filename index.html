@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v14</title>
+<title>TRON Math Gate Racer v15</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -373,10 +373,11 @@
     background:radial-gradient(circle, rgba(0,245,255,.20), transparent 58%);
   }
 
-
-  .leverCluster {
-    align-items:flex-end;
+  .pedalCluster {
+    display:flex;
     gap:10px;
+    align-items:flex-end;
+    pointer-events:auto;
   }
 
   .miniShoot {
@@ -387,80 +388,47 @@
     align-self:flex-end;
   }
 
-  #speedLeverWrap {
-    width:clamp(74px, 19vw, 98px);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:6px;
-    pointer-events:auto;
-  }
-
-  #speedLeverLabelTop,
-  #speedLeverLabelBottom {
-    font-size:11px;
+  .pedal {
+    width:clamp(74px, 18vw, 96px);
+    height:clamp(112px, 28vw, 150px);
+    border-radius:22px;
+    font-size:clamp(14px, 3.8vw, 18px);
+    line-height:1.05;
+    letter-spacing:.5px;
     font-weight:1000;
-    letter-spacing:1px;
-    color:rgba(234,255,255,.9);
-    text-shadow:0 0 10px rgba(0,245,255,.85);
+    display:grid;
+    place-items:center;
+    text-align:center;
     user-select:none;
+    pointer-events:auto;
+    backdrop-filter:blur(8px);
+    transition:transform .06s ease, filter .06s ease, box-shadow .12s ease;
   }
 
-  #speedLever {
-    position:relative;
-    width:100%;
-    height:clamp(140px, 30vw, 180px);
-    border-radius:26px;
-    border:2px solid rgba(0,245,255,.72);
-    background:linear-gradient(180deg, rgba(10,50,34,.42) 0%, rgba(0,16,35,.72) 44%, rgba(52,10,16,.42) 100%);
-    box-shadow:0 0 22px rgba(0,245,255,.18), inset 0 0 28px rgba(0,245,255,.06);
-    overflow:hidden;
+  .pedal.down {
+    transform:translateY(6px) scale(.98);
+    filter:brightness(1.2);
   }
 
-  #speedLeverTrack {
-    position:absolute;
-    left:50%;
-    top:12px;
-    bottom:12px;
-    width:8px;
-    transform:translateX(-50%);
-    border-radius:999px;
-    background:linear-gradient(180deg, rgba(141,255,63,.78), rgba(0,245,255,.82), rgba(255,63,95,.78));
-    box-shadow:0 0 16px rgba(0,245,255,.34);
+  .brakePedal {
+    color:#ff6b7d;
+    border-color:rgba(255,63,95,.86);
+    background:linear-gradient(180deg, rgba(255,63,95,.22), rgba(0,10,28,.72));
+    box-shadow:0 0 20px rgba(255,63,95,.30), inset 0 0 22px rgba(255,63,95,.12);
   }
 
-  #speedLeverCenter {
-    position:absolute;
-    left:14px;
-    right:14px;
-    top:50%;
-    height:3px;
-    transform:translateY(-50%);
-    background:rgba(255,255,255,.55);
-    box-shadow:0 0 10px rgba(255,255,255,.35);
-  }
-
-  #speedLeverKnob {
-    position:absolute;
-    left:50%;
-    top:50%;
-    width:44px;
-    height:44px;
-    transform:translate(-50%, -50%);
-    border-radius:50%;
-    border:3px solid rgba(255,255,255,.9);
-    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), rgba(0,245,255,.88) 48%, rgba(255,43,214,.82) 100%);
-    box-shadow:0 0 18px rgba(0,245,255,.45), 0 0 24px rgba(255,43,214,.18);
-    touch-action:none;
+  .accelPedal {
+    color:#8dff3f;
+    border-color:rgba(141,255,63,.86);
+    background:linear-gradient(180deg, rgba(141,255,63,.24), rgba(0,10,28,.72));
+    box-shadow:0 0 20px rgba(141,255,63,.28), inset 0 0 22px rgba(141,255,63,.12);
   }
 
   @media (max-height:660px) {
-    #speedLever {
-      height:118px;
-    }
-    #speedLeverKnob {
-      width:38px;
-      height:38px;
+    .pedal {
+      height:92px;
+      width:66px;
+      font-size:12px;
     }
     .miniShoot {
       width:52px;
@@ -468,7 +436,7 @@
     }
   }
 
-  .hidden { display:none !important; }
+.hidden { display:none !important; }
 
   @media (max-height:660px) {
     #stats { gap:5px; }
@@ -496,15 +464,15 @@ window.addEventListener("error", function(e) {
     <div id="stats">
       <div class="stat"><span>SPEED</span><b id="speedHud">0</b></div>
       <div class="stat"><span>AMMO</span><b id="ammoHud">3</b></div>
-      <div class="stat"><span>LEVER</span><b id="boostHud">MID</b></div>
+      <div class="stat"><span>THROTTLE</span><b id="boostHud">100%</b></div>
       <div class="stat"><span>GATES LEFT</span><b id="gatesHud">0</b></div>
       <div class="stat"><span>LIVES</span><b id="livesHud">5</b></div>
       <div class="stat"><span>SCORE</span><b id="scoreHud">0</b></div>
     </div>
     <div id="questionBox">
       <div id="question">2 × 4 = ?</div>
-      <div id="objective">Objective: clear ×2 to ×12 and escape through the final TRON portal. Push the lever fully up for 1.5× speed.</div>
-      <div id="instruction">TRON grid race: steer, use the speed lever, shoot, and bash through the correct gate. Full FAST gives 1.5× speed.</div>
+      <div id="objective">Objective: clear ×2 to ×12 and escape through the final TRON portal. Hold ACCEL to build speed up to 3×.</div>
+      <div id="instruction">TRON grid race: steer, hold ACCEL to build speed, use BRAKE to slow down, shoot, and bash through the correct gate.</div>
     </div>
   </div>
 
@@ -518,17 +486,10 @@ window.addEventListener("error", function(e) {
       <button id="leftBtn" class="ctrl">◀</button>
       <button id="rightBtn" class="ctrl">▶</button>
     </div>
-    <div class="cluster leverCluster">
+    <div class="pedalCluster">
       <button id="shootBtn" class="ctrl miniShoot">⚡</button>
-      <div id="speedLeverWrap">
-        <div id="speedLeverLabelTop">FAST ×1.5</div>
-        <div id="speedLever">
-          <div id="speedLeverTrack"></div>
-          <div id="speedLeverCenter"></div>
-          <div id="speedLeverKnob"></div>
-        </div>
-        <div id="speedLeverLabelBottom">SLOW</div>
-      </div>
+      <button id="brakeBtn" class="pedal brakePedal">BRAKE<br>▼</button>
+      <button id="accelBtn" class="pedal accelPedal">ACCEL<br>▲</button>
     </div>
   </div>
 
@@ -536,7 +497,7 @@ window.addEventListener("error", function(e) {
     <h1>TRON Math<br>Gate Racer v7</h1>
     <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon TRON finish portal.</p>
     <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
-    <p>Inspired by arcade racers: clear lanes, checkpoints, a TRON speed lever, shooting, boss ships, and a neon TRON finish line.</p>
+    <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, shooting, boss ships, and a neon TRON finish line.</p>
     <div class="row">
       <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame()">Start Race</button>
       <button id="teacherBtn" class="bigBtn" onclick="var t=document.getElementById('teacher'); if(t) t.classList.toggle('open');">Teacher Mode</button>
@@ -594,9 +555,9 @@ let lane = 1;
 let targetLane = 1;
 let inputMove = 0;
 let distance = 0;
-let leverInput = 0;
-let leverVisual = 0;
-let leverDragging = false;
+let accelHeld = false;
+let brakeHeld = false;
+let accelCharge = 0;
 
 const LANE_X = [-5.2, 0, 5.2];
 const PLAYER_Z = 8.2;
@@ -728,76 +689,17 @@ function init() {
   bindHold($("leftBtn"), () => inputMove = -1, () => { if (inputMove === -1) inputMove = 0; });
   bindHold($("rightBtn"), () => inputMove = 1, () => { if (inputMove === 1) inputMove = 0; });
   bindHold($("shootBtn"), shoot, () => {});
-  setupSpeedLever();
+  bindHold($("accelBtn"), () => { accelHeld = true; const b = $("accelBtn"); if (b) b.classList.add("down"); }, () => { accelHeld = false; const b = $("accelBtn"); if (b) b.classList.remove("down"); });
+  bindHold($("brakeBtn"), () => { brakeHeld = true; const b = $("brakeBtn"); if (b) b.classList.add("down"); }, () => { brakeHeld = false; const b = $("brakeBtn"); if (b) b.classList.remove("down"); });
 }
 
 
-function setupSpeedLever() {
-  const lever = $("speedLever");
-  const knob = $("speedLeverKnob");
-  if (!lever || !knob) return;
-
-  function setLeverFromEvent(e) {
-    const rect = lever.getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    const center = rect.height / 2;
-    const normalized = (center - y) / (rect.height / 2 - 22);
-    leverInput = Math.max(-1, Math.min(1, normalized));
-    updateLeverVisual();
-  }
-
-  function onPointerDown(e) {
-    e.preventDefault();
-    leverDragging = true;
-    lever.setPointerCapture?.(e.pointerId);
-    setLeverFromEvent(e);
-  }
-
-  function onPointerMove(e) {
-    if (!leverDragging) return;
-    e.preventDefault();
-    setLeverFromEvent(e);
-  }
-
-  function onPointerUp(e) {
-    leverDragging = false;
-    leverInput = 0;
-    updateLeverVisual();
-  }
-
-  lever.addEventListener("pointerdown", onPointerDown);
-  lever.addEventListener("pointermove", onPointerMove);
-  lever.addEventListener("pointerup", onPointerUp);
-  lever.addEventListener("pointercancel", onPointerUp);
-  lever.addEventListener("pointerleave", () => {
-    if (!leverDragging) return;
-    leverDragging = false;
-    leverInput = 0;
-    updateLeverVisual();
-  });
-
-  updateLeverVisual();
+function updateThrottleHud() {
+  if (!hud.boost) return;
+  const pct = Math.round((state.speed / Math.max(.01, state.baseSpeed)) * 100);
+  hud.boost.textContent = `${pct}%`;
 }
 
-function updateLeverVisual() {
-  const lever = $("speedLever");
-  const knob = $("speedLeverKnob");
-  if (!lever || !knob) return;
-
-  const rectHeight = lever.clientHeight || 160;
-  const travel = rectHeight / 2 - 22;
-  leverVisual += (leverInput - leverVisual) * .45;
-  const offset = -leverVisual * travel;
-  knob.style.top = `calc(50% + ${offset}px)`;
-
-  if (Math.abs(leverInput) < .12) {
-    hud.boost.textContent = "MID";
-  } else if (leverInput > 0) {
-    hud.boost.textContent = "FAST";
-  } else {
-    hud.boost.textContent = "SLOW";
-  }
-}
 function startGame() {
   window.__tronStarted = true;
   audio.tap();
@@ -830,9 +732,12 @@ function startGame() {
   distance = 0;
   lane = 1;
   targetLane = 1;
-  leverInput = 0;
-  leverVisual = 0;
-  updateLeverVisual();
+  accelHeld = false;
+  brakeHeld = false;
+  accelCharge = 0;
+  const accelBtn = $("accelBtn"); if (accelBtn) accelBtn.classList.remove("down");
+  const brakeBtn = $("brakeBtn"); if (brakeBtn) brakeBtn.classList.remove("down");
+  updateThrottleHud();
 
   clearObjects();
   makeQuestion();
@@ -1349,6 +1254,21 @@ function update(dt) {
     state.boost = Math.max(state.boost, 11.5);
   }
 
+  if (accelHeld) {
+    accelCharge = Math.min(1, accelCharge + dt * 0.55);
+  } else if (brakeHeld) {
+    accelCharge = Math.max(0, accelCharge - dt * 1.4);
+  } else {
+    accelCharge = Math.max(0, accelCharge - dt * 0.75);
+  }
+
+  let throttleTarget = state.baseSpeed * (1 + 2 * accelCharge); // up to 3x cruising speed
+  if (brakeHeld) {
+    throttleTarget = Math.min(throttleTarget, state.baseSpeed * 0.45);
+  }
+
+  state.speed = THREE.MathUtils.lerp(state.speed, throttleTarget, brakeHeld ? 4.5 * dt : 2.2 * dt);
+
   const speed = state.speed + state.boost;
   const boostSurge = state.boostTimer > 0 ? 1.10 : 1;
   const scroll = speed * dt * 1.08 * boostSurge;
@@ -1374,8 +1294,9 @@ function update(dt) {
 
   state.boost = Math.max(0, state.boost - 4.2 * dt);
   const speedLines = $("speedLines");
-  if (speedLines) speedLines.classList.toggle("on", state.boostTimer > 0);
+  if (speedLines) speedLines.classList.toggle("on", state.boostTimer > 0 || accelCharge > 0.55);
   updateHud();
+  updateThrottleHud();
 }
 
 function updatePlayer(dt) {
@@ -1516,7 +1437,7 @@ function wrongAnswer(chosen, answer) {
   showAnswerFeedback(false);
   state.streak = 0;
   state.score = Math.max(0, state.score - 35);
-  state.speed = Math.max(7, state.speed - 1.2);
+  state.speed = Math.max(state.baseSpeed * 0.7, state.speed - 1.2);
   state.boost = 0;
   state.lives--;
   audio.wrong();
@@ -1528,7 +1449,7 @@ function shieldBlocked() {
   showAnswerFeedback(false);
   state.streak = 0;
   state.lives--;
-  state.speed = Math.max(7, state.speed - 1.5);
+  state.speed = Math.max(state.baseSpeed * 0.55, state.speed - 1.5);
   state.boost = 0;
   audio.wrong();
   toast("Shield blocked you! Shoot shield gates before bashing.");
@@ -2098,13 +2019,13 @@ function keyDown(e) {
   }
   if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") {
     e.preventDefault();
-    leverInput = 1;
-    updateLeverVisual();
+    accelHeld = true;
+    const b = $("accelBtn"); if (b) b.classList.add("down");
   }
   if (e.key === "ArrowDown" || e.key.toLowerCase() === "s") {
     e.preventDefault();
-    leverInput = -1;
-    updateLeverVisual();
+    brakeHeld = true;
+    const b = $("brakeBtn"); if (b) b.classList.add("down");
   }
   if (e.key.toLowerCase() === "p") togglePause();
 }
@@ -2112,9 +2033,13 @@ function keyDown(e) {
 function keyUp(e) {
   if ((e.key === "ArrowLeft" || e.key.toLowerCase() === "a") && inputMove === -1) inputMove = 0;
   if ((e.key === "ArrowRight" || e.key.toLowerCase() === "d") && inputMove === 1) inputMove = 0;
-  if (e.key === "ArrowUp" || e.key.toLowerCase() === "w" || e.key === "ArrowDown" || e.key.toLowerCase() === "s") {
-    leverInput = 0;
-    updateLeverVisual();
+  if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") {
+    accelHeld = false;
+    const b = $("accelBtn"); if (b) b.classList.remove("down");
+  }
+  if (e.key === "ArrowDown" || e.key.toLowerCase() === "s") {
+    brakeHeld = false;
+    const b = $("brakeBtn"); if (b) b.classList.remove("down");
   }
 }
 
