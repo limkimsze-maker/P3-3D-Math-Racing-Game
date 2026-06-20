@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v6</title>
+<title>TRON Math Gate Racer v7</title>
 <style>
   :root {
     --cyan:#00f5ff;
     --pink:#ff2bd6;
     --lime:#8dff3f;
-    --gold:#ffcc4d;
+    --gold:#ffd45a;
     --red:#ff3f5f;
     --panel:rgba(0, 12, 32, .84);
     --text:#eaffff;
@@ -22,297 +22,292 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: #02030b;
-    color: var(--text);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    touch-action: none;
+    background:#02030b;
+    color:var(--text);
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    touch-action:none;
   }
 
   #game {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
+    position:fixed;
+    inset:0;
+    overflow:hidden;
     background:
-      radial-gradient(circle at 50% 18%, rgba(0,245,255,.18), transparent 30%),
-      radial-gradient(circle at 20% 75%, rgba(255,43,214,.13), transparent 32%),
+      radial-gradient(circle at 50% 17%, rgba(0,245,255,.18), transparent 30%),
+      radial-gradient(circle at 18% 78%, rgba(255,43,214,.13), transparent 32%),
       #02030b;
   }
 
   canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
+    display:block;
+    width:100%;
+    height:100%;
   }
 
   #hud {
-    position: fixed;
-    top: env(safe-area-inset-top, 0px);
-    left: 0;
-    right: 0;
-    z-index: 5;
-    padding: 10px 10px 0;
-    pointer-events: none;
+    position:fixed;
+    top:env(safe-area-inset-top, 0px);
+    left:0;
+    right:0;
+    z-index:5;
+    padding:9px 9px 0;
+    pointer-events:none;
   }
 
   #stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-bottom: 8px;
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:6px;
+    margin-bottom:7px;
   }
 
   .stat {
-    min-height: 58px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(0,245,255,.14), rgba(255,43,214,.10));
-    border: 1px solid rgba(0,245,255,.55);
-    box-shadow: 0 0 18px rgba(0,245,255,.22), inset 0 0 18px rgba(0,245,255,.05);
-    display: grid;
-    place-items: center;
-    text-align: center;
-    padding: 7px 4px;
-    backdrop-filter: blur(8px);
+    min-height:54px;
+    border-radius:15px;
+    background:linear-gradient(135deg, rgba(0,245,255,.14), rgba(255,43,214,.10));
+    border:1px solid rgba(0,245,255,.55);
+    box-shadow:0 0 16px rgba(0,245,255,.20), inset 0 0 16px rgba(0,245,255,.05);
+    display:grid;
+    place-items:center;
+    text-align:center;
+    padding:6px 3px;
+    backdrop-filter:blur(8px);
   }
 
   .stat span {
-    display: block;
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    opacity: .78;
-    font-weight: 900;
+    display:block;
+    font-size:9px;
+    letter-spacing:1.2px;
+    opacity:.76;
+    font-weight:900;
   }
 
   .stat b {
-    display: block;
-    font-size: 24px;
-    line-height: 1;
-    margin-top: 3px;
-    color: white;
-    text-shadow: 0 0 12px var(--cyan);
+    display:block;
+    font-size:22px;
+    line-height:1;
+    margin-top:3px;
+    color:white;
+    text-shadow:0 0 12px var(--cyan);
   }
 
   #questionBox {
-    width: min(620px, calc(100vw - 20px));
-    margin: 0 auto;
-    padding: 10px 12px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, rgba(0,18,42,.88), rgba(21,0,38,.84));
-    border: 1px solid rgba(0,245,255,.64);
-    box-shadow: 0 0 22px rgba(0,245,255,.22), 0 0 40px rgba(255,43,214,.10);
-    text-align: center;
+    width:min(650px, calc(100vw - 18px));
+    margin:0 auto;
+    padding:9px 12px;
+    border-radius:18px;
+    background:linear-gradient(135deg, rgba(0,18,42,.88), rgba(21,0,38,.84));
+    border:1px solid rgba(0,245,255,.64);
+    box-shadow:0 0 22px rgba(0,245,255,.22), 0 0 40px rgba(255,43,214,.10);
+    text-align:center;
   }
 
   #question {
-    font-size: clamp(28px, 7vw, 46px);
-    line-height: 1;
-    font-weight: 1000;
-    color: white;
-    text-shadow: 0 0 13px rgba(0,245,255,.78);
+    font-size:clamp(27px, 6.8vw, 46px);
+    line-height:1;
+    font-weight:1000;
+    color:white;
+    text-shadow:0 0 13px rgba(0,245,255,.78);
+  }
+
+  #objective {
+    margin-top:4px;
+    font-size:clamp(12px, 3vw, 15px);
+    opacity:.88;
+    font-weight:800;
   }
 
   #instruction {
-    margin-top: 5px;
-    font-size: clamp(12px, 3vw, 15px);
-    opacity: .82;
-  }
-
-  #laneHint {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 8px;
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: .7px;
-    opacity: .92;
-  }
-
-  #laneHint div {
-    padding: 5px 8px;
-    border-radius: 999px;
-    background: rgba(0,0,0,.35);
-    border: 1px solid rgba(255,255,255,.18);
+    margin-top:3px;
+    font-size:clamp(11px, 2.7vw, 14px);
+    opacity:.74;
   }
 
   #topButtons {
-    position: fixed;
-    top: calc(env(safe-area-inset-top, 0px) + 92px);
-    right: 10px;
-    display: flex;
-    gap: 7px;
-    z-index: 7;
+    position:fixed;
+    top:calc(env(safe-area-inset-top, 0px) + 88px);
+    right:9px;
+    display:flex;
+    gap:7px;
+    z-index:7;
   }
 
   button {
-    font: inherit;
-    color: white;
-    border: 1px solid rgba(0,245,255,.62);
-    border-radius: 14px;
-    background: linear-gradient(135deg, rgba(0,245,255,.15), rgba(255,43,214,.18));
-    box-shadow: 0 0 15px rgba(0,245,255,.20), inset 0 0 14px rgba(255,255,255,.04);
-    font-weight: 900;
-    cursor: pointer;
+    font:inherit;
+    color:white;
+    border:1px solid rgba(0,245,255,.62);
+    border-radius:14px;
+    background:linear-gradient(135deg, rgba(0,245,255,.15), rgba(255,43,214,.18));
+    box-shadow:0 0 15px rgba(0,245,255,.20), inset 0 0 14px rgba(255,255,255,.04);
+    font-weight:900;
+    cursor:pointer;
+    user-select:none;
   }
 
-  .smallBtn { padding: 8px 10px; font-size: 14px; }
+  .smallBtn { padding:8px 10px; font-size:14px; }
 
   #controls {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
-    z-index: 8;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 0 18px;
-    pointer-events: none;
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 14px);
+    z-index:8;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    padding:0 14px;
+    pointer-events:none;
   }
 
   .cluster {
-    display: flex;
-    gap: 14px;
-    pointer-events: auto;
+    display:flex;
+    gap:12px;
+    pointer-events:auto;
   }
 
   .ctrl {
-    width: clamp(64px, 17vw, 86px);
-    height: clamp(64px, 17vw, 86px);
-    border-radius: 23px;
-    font-size: clamp(26px, 8vw, 38px);
-    line-height: 1;
-    backdrop-filter: blur(8px);
-    background: rgba(0, 16, 35, .50);
+    width:clamp(61px, 16vw, 84px);
+    height:clamp(61px, 16vw, 84px);
+    border-radius:22px;
+    font-size:clamp(24px, 7.5vw, 38px);
+    line-height:1;
+    backdrop-filter:blur(8px);
+    background:rgba(0, 16, 35, .50);
   }
 
   #shootBtn {
-    color: var(--gold);
-    border-color: rgba(255,43,214,.75);
-    box-shadow: 0 0 18px rgba(255,43,214,.28), inset 0 0 18px rgba(255,43,214,.08);
+    color:var(--gold);
+    border-color:rgba(255,43,214,.78);
+    box-shadow:0 0 18px rgba(255,43,214,.28), inset 0 0 18px rgba(255,43,214,.08);
+  }
+
+  #boostBtn {
+    color:var(--lime);
+    border-color:rgba(141,255,63,.78);
+    box-shadow:0 0 18px rgba(141,255,63,.24), inset 0 0 18px rgba(141,255,63,.07);
   }
 
   #center {
-    position: fixed;
-    z-index: 20;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: min(720px, calc(100vw - 32px));
-    padding: 22px 18px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, rgba(0,19,44,.96), rgba(22,0,40,.95));
-    border: 2px solid rgba(0,245,255,.72);
-    box-shadow: 0 0 42px rgba(0,245,255,.32), 0 0 75px rgba(255,43,214,.18);
-    text-align: center;
+    position:fixed;
+    z-index:20;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
+    width:min(740px, calc(100vw - 30px));
+    padding:22px 18px;
+    border-radius:24px;
+    background:linear-gradient(135deg, rgba(0,19,44,.96), rgba(22,0,40,.95));
+    border:2px solid rgba(0,245,255,.72);
+    box-shadow:0 0 42px rgba(0,245,255,.32), 0 0 75px rgba(255,43,214,.18);
+    text-align:center;
   }
 
   #center h1 {
-    margin: 0 0 8px;
-    font-size: clamp(34px, 8vw, 62px);
-    line-height: .95;
-    color: white;
-    text-shadow: 0 0 16px var(--cyan), 0 0 32px rgba(255,43,214,.65);
+    margin:0 0 8px;
+    font-size:clamp(33px, 8vw, 62px);
+    line-height:.95;
+    color:white;
+    text-shadow:0 0 16px var(--cyan), 0 0 32px rgba(255,43,214,.65);
   }
 
   #center p {
-    margin: 8px 0;
-    line-height: 1.35;
-    opacity: .88;
+    margin:8px 0;
+    line-height:1.35;
+    opacity:.88;
   }
 
   .row {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 14px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:14px;
   }
 
-  .bigBtn {
-    padding: 12px 18px;
-    font-size: 17px;
-  }
+  .bigBtn { padding:12px 18px; font-size:17px; }
 
   #teacher {
-    display: none;
-    margin-top: 12px;
-    padding: 12px;
-    border-radius: 18px;
-    background: rgba(0,0,0,.28);
-    border: 1px solid rgba(255,255,255,.16);
-    text-align: left;
+    display:none;
+    margin-top:12px;
+    padding:12px;
+    border-radius:18px;
+    background:rgba(0,0,0,.28);
+    border:1px solid rgba(255,255,255,.16);
+    text-align:left;
   }
 
-  #teacher.open { display: block; }
+  #teacher.open { display:block; }
 
   .grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(130px, 1fr));
-    gap: 10px;
+    display:grid;
+    grid-template-columns:repeat(2, minmax(130px, 1fr));
+    gap:10px;
   }
 
   label {
-    display: grid;
-    gap: 5px;
-    font-size: 12px;
-    font-weight: 900;
-    color: rgba(234,255,255,.76);
+    display:grid;
+    gap:5px;
+    font-size:12px;
+    font-weight:900;
+    color:rgba(234,255,255,.76);
   }
 
   select, input {
-    width: 100%;
-    border-radius: 11px;
-    border: 1px solid rgba(0,245,255,.42);
-    background: rgba(0,9,22,.9);
-    color: white;
-    padding: 8px;
-    outline: none;
-    font: inherit;
+    width:100%;
+    border-radius:11px;
+    border:1px solid rgba(0,245,255,.42);
+    background:rgba(0,9,22,.9);
+    color:white;
+    padding:8px;
+    outline:none;
+    font:inherit;
   }
 
   #toast {
-    position: fixed;
-    left: 50%;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 112px);
-    transform: translateX(-50%);
-    z-index: 10;
-    width: min(520px, calc(100vw - 34px));
-    padding: 11px 14px;
-    border-radius: 16px;
-    background: rgba(0,12,32,.86);
-    border: 1px solid rgba(255,255,255,.20);
-    box-shadow: 0 0 24px rgba(0,245,255,.20);
-    text-align: center;
-    font-weight: 900;
-    opacity: 0;
-    transition: opacity .18s ease, transform .18s ease;
-    pointer-events: none;
+    position:fixed;
+    left:50%;
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 112px);
+    transform:translateX(-50%);
+    z-index:10;
+    width:min(540px, calc(100vw - 34px));
+    padding:11px 14px;
+    border-radius:16px;
+    background:rgba(0,12,32,.88);
+    border:1px solid rgba(255,255,255,.20);
+    box-shadow:0 0 24px rgba(0,245,255,.20);
+    text-align:center;
+    font-weight:900;
+    opacity:0;
+    transition:opacity .18s ease, transform .18s ease;
+    pointer-events:none;
   }
 
   #toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(-8px);
+    opacity:1;
+    transform:translateX(-50%) translateY(-8px);
   }
 
   #flash {
-    position: fixed;
-    inset: 0;
-    z-index: 6;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity .16s ease;
-    background: radial-gradient(circle, rgba(0,245,255,.20), transparent 58%);
+    position:fixed;
+    inset:0;
+    z-index:6;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity .15s ease;
+    background:radial-gradient(circle, rgba(0,245,255,.20), transparent 58%);
   }
 
-  .hidden { display: none !important; }
+  .hidden { display:none !important; }
 
-  @media (max-height: 660px) {
-    #stats { gap: 6px; }
-    .stat { min-height: 48px; }
-    .stat b { font-size: 20px; }
-    #questionBox { padding: 7px 9px; }
-    #topButtons { top: calc(env(safe-area-inset-top, 0px) + 76px); }
-    #instruction { display: none; }
+  @media (max-height:660px) {
+    #stats { gap:5px; }
+    .stat { min-height:45px; border-radius:13px; }
+    .stat b { font-size:19px; }
+    .stat span { font-size:8px; letter-spacing:.8px; }
+    #questionBox { padding:7px 9px; }
+    #instruction { display:none; }
+    #topButtons { top:calc(env(safe-area-inset-top, 0px) + 72px); }
+    #center { padding:16px; }
   }
 </style>
 </head>
@@ -322,17 +317,14 @@
     <div id="stats">
       <div class="stat"><span>SPEED</span><b id="speedHud">0</b></div>
       <div class="stat"><span>AMMO</span><b id="ammoHud">3</b></div>
+      <div class="stat"><span>BOOST</span><b id="boostHud">0</b></div>
       <div class="stat"><span>LIVES</span><b id="livesHud">5</b></div>
       <div class="stat"><span>SCORE</span><b id="scoreHud">0</b></div>
     </div>
     <div id="questionBox">
       <div id="question">2 × 4 = ?</div>
-      <div id="instruction">Bash through the numbered 3D gate. That gate is your answer.</div>
-      <div id="laneHint">
-        <div>◀ Left lane</div>
-        <div>Middle lane</div>
-        <div>Right lane ▶</div>
-      </div>
+      <div id="objective">Objective: clear ×2 to ×12 and escape through the final TRON portal.</div>
+      <div id="instruction">Bash through the numbered 3D gate. Use 🚀 Boost and ⚡ Shoot.</div>
     </div>
   </div>
 
@@ -348,14 +340,15 @@
     </div>
     <div class="cluster">
       <button id="shootBtn" class="ctrl">⚡</button>
+      <button id="boostBtn" class="ctrl">🚀</button>
     </div>
   </div>
 
   <div id="center">
-    <h1>TRON Math<br>Gate Racer v6</h1>
-    <p>Race on a neon grid. Each round shows one Math fact question.</p>
-    <p>Three big 3D gates appear on the track. <b>Pass through the gate with the correct number.</b></p>
-    <p>Correct gate = smash through the answer + boost + ammo. Shoot alien ships for bonus points.</p>
+    <h1>TRON Math<br>Gate Racer v7</h1>
+    <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then escape through the final TRON portal.</p>
+    <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
+    <p>New challenges: bends, alien blockers, shield gates, boss battles, boost acceleration, and shooting.</p>
     <div class="row">
       <button id="startBtn" class="bigBtn">Start Race</button>
       <button id="teacherBtn" class="bigBtn">Teacher Mode</button>
@@ -381,14 +374,15 @@
         <label>Correct gates per table
           <input id="needCorrect" type="number" min="3" max="12" value="5">
         </label>
-        <label>Speed
+        <label>Race speed
           <select id="speedChoice">
-            <option value="9.5">Steady</option>
-            <option value="12.5" selected>Fast</option>
-            <option value="15.5">Hyper</option>
+            <option value="10.5">Steady</option>
+            <option value="13.2" selected>Fast</option>
+            <option value="16">Hyper</option>
           </select>
         </label>
       </div>
+      <p style="font-size:12px; margin:10px 0 0; opacity:.78;">Bosses appear after ×4, ×8, and ×12. Shield gates appear from ×5 onward.</p>
     </div>
   </div>
 
@@ -402,24 +396,29 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 const $ = id => document.getElementById(id);
 
 let scene, camera, renderer, clock;
-let player, playerLight, trackGroup, starPoints;
+let player, playerLight, roadGroup, starPoints;
 let running = false;
 let paused = false;
 let muted = false;
 let lane = 1;
-let targetX = 0;
+let targetLane = 1;
 let inputMove = 0;
+let distance = 0;
 
 const LANE_X = [-5.2, 0, 5.2];
 const PLAYER_Z = 8.2;
+const ROAD_Z_NEAR = 24;
+const ROAD_Z_FAR = -270;
 
 const state = {
-  speed: 12.5,
-  baseSpeed: 12.5,
+  speed: 13.2,
+  baseSpeed: 13.2,
   boost: 0,
+  boostCharges: 0,
+  boostTimer: 0,
   score: 0,
   lives: 5,
-  ammo: 3,
+  ammo: 4,
   streak: 0,
   table: 2,
   finalTable: 12,
@@ -427,22 +426,29 @@ const state = {
   correctInTable: 0,
   countdown: 0,
   waitingForNextGate: 0,
-  gameOver: false
+  gameOver: false,
+  boss: null,
+  bossPendingAdvance: false
 };
 
 let currentQuestion = null;
 let gateSet = null;
 const aliens = [];
 const lasers = [];
-const enemyShots = [];
 const particles = [];
+const roadLines = [];
+const crossLines = [];
+const sideBeacons = [];
+const hoops = [];
 
 const hud = {
   speed: $("speedHud"),
   ammo: $("ammoHud"),
+  boost: $("boostHud"),
   lives: $("livesHud"),
   score: $("scoreHud"),
-  question: $("question")
+  question: $("question"),
+  objective: $("objective")
 };
 
 const audio = createAudio();
@@ -452,11 +458,11 @@ animate();
 
 function init() {
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x02030b, 0.024);
+  scene.fog = new THREE.FogExp2(0x02030b, 0.023);
 
-  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 700);
-  camera.position.set(0, 5.4, 15.2);
-  camera.lookAt(0, 1.0, -28);
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, .1, 700);
+  camera.position.set(0, 5.4, 15.4);
+  camera.lookAt(0, 1.1, -28);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -472,15 +478,15 @@ function init() {
   key.position.set(0, 12, 9);
   scene.add(key);
 
-  const cyan = new THREE.PointLight(0x00f5ff, 4.5, 90);
+  const cyan = new THREE.PointLight(0x00f5ff, 4.5, 95);
   cyan.position.set(0, 8, 8);
   scene.add(cyan);
 
-  const pink = new THREE.PointLight(0xff2bd6, 3.8, 70);
+  const pink = new THREE.PointLight(0xff2bd6, 3.8, 75);
   pink.position.set(-10, 6, -20);
   scene.add(pink);
 
-  buildTrack();
+  buildRoad();
   buildPlayer();
   buildStars();
 
@@ -502,6 +508,7 @@ function init() {
   bindHold($("leftBtn"), () => inputMove = -1, () => { if (inputMove === -1) inputMove = 0; });
   bindHold($("rightBtn"), () => inputMove = 1, () => { if (inputMove === 1) inputMove = 0; });
   bindHold($("shootBtn"), shoot, () => {});
+  bindHold($("boostBtn"), useBoost, () => {});
 }
 
 function startGame() {
@@ -514,26 +521,29 @@ function startGame() {
   state.table = s;
   state.finalTable = f;
   state.needCorrect = Math.max(3, Math.min(12, parseInt($("needCorrect").value, 10) || 5));
-  state.baseSpeed = parseFloat($("speedChoice").value) || 12.5;
-
+  state.baseSpeed = parseFloat($("speedChoice").value) || 13.2;
   state.speed = state.baseSpeed;
   state.boost = 0;
+  state.boostCharges = 1;
+  state.boostTimer = 0;
   state.score = 0;
   state.lives = 5;
-  state.ammo = 3;
+  state.ammo = 4;
   state.streak = 0;
   state.correctInTable = 0;
-  state.countdown = 2.2;
+  state.countdown = 2.0;
   state.waitingForNextGate = 0;
   state.gameOver = false;
+  state.boss = null;
+  state.bossPendingAdvance = false;
 
+  distance = 0;
   lane = 1;
-  targetX = 0;
-  player.position.x = 0;
+  targetLane = 1;
 
   clearObjects();
   makeQuestion();
-  spawnGateSet(-96);
+  spawnGateSet(-100);
 
   running = true;
   paused = false;
@@ -544,85 +554,88 @@ function startGame() {
   $("controls").classList.remove("hidden");
 
   updateHud();
-  toast("Get ready. Bash through the correct numbered gate.");
+  toast("Mission start. Bash through the correct numbered gate.");
   audio.boost();
 }
 
-function buildTrack() {
-  trackGroup = new THREE.Group();
-  scene.add(trackGroup);
+function buildRoad() {
+  roadGroup = new THREE.Group();
+  scene.add(roadGroup);
 
   const floorMat = new THREE.MeshStandardMaterial({
     color: 0x030714,
     emissive: 0x020d28,
-    emissiveIntensity: .75,
-    metalness: .55,
-    roughness: .22
+    emissiveIntensity: .70,
+    metalness: .50,
+    roughness: .25
   });
-  const floor = new THREE.Mesh(new THREE.BoxGeometry(18, .16, 310), floorMat);
-  floor.position.set(0, -.15, -90);
-  trackGroup.add(floor);
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(20, .14, 320), floorMat);
+  floor.position.set(0, -.16, -92);
+  roadGroup.add(floor);
 
-  const lineMat = new THREE.LineBasicMaterial({ color: 0x00dfff, transparent: true, opacity: .54 });
-  for (let x = -9; x <= 9; x += 1.5) {
-    const geo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(x, .03, 24),
-      new THREE.Vector3(x, .03, -260)
-    ]);
-    trackGroup.add(new THREE.Line(geo, lineMat.clone()));
-  }
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x00dfff, transparent: true, opacity: .55 });
+  const railMat = new THREE.LineBasicMaterial({ color: 0xff2bd6, transparent: true, opacity: .78 });
+  const offsets = [-9,-7.5,-6,-4.5,-3,-1.5,0,1.5,3,4.5,6,7.5,9];
 
-  for (let z = 22; z >= -260; z -= 5) {
-    const geo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-9, .04, z),
-      new THREE.Vector3(9, .04, z)
-    ]);
+  for (const offset of offsets) {
+    const geo = new THREE.BufferGeometry();
+    const points = new Float32Array(44 * 3);
+    geo.setAttribute("position", new THREE.BufferAttribute(points, 3));
     const line = new THREE.Line(geo, lineMat.clone());
-    line.userData.scrollLine = true;
-    trackGroup.add(line);
+    line.userData.offset = offset;
+    roadGroup.add(line);
+    roadLines.push(line);
   }
 
-  const railMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .70 });
-  for (const x of [-10.3, 10.3]) {
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(.18, .18, 310), railMat.clone());
-    rail.position.set(x, .45, -90);
-    trackGroup.add(rail);
+  for (const offset of [-10.4, 10.4, -2.6, 2.6]) {
+    const geo = new THREE.BufferGeometry();
+    const points = new Float32Array(44 * 3);
+    geo.setAttribute("position", new THREE.BufferAttribute(points, 3));
+    const line = new THREE.Line(geo, offset === -2.6 || offset === 2.6 ? railMat.clone() : lineMat.clone());
+    line.userData.offset = offset;
+    roadGroup.add(line);
+    roadLines.push(line);
   }
 
-  const laneMat = new THREE.MeshBasicMaterial({ color: 0xff2bd6, transparent: true, opacity: .42 });
-  for (const x of [-2.6, 2.6]) {
-    const line = new THREE.Mesh(new THREE.BoxGeometry(.08, .08, 310), laneMat.clone());
-    line.position.set(x, .08, -90);
-    trackGroup.add(line);
+  for (let z = ROAD_Z_NEAR; z >= ROAD_Z_FAR; z -= 5) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(6), 3));
+    const line = new THREE.Line(geo, lineMat.clone());
+    line.userData.z = z;
+    roadGroup.add(line);
+    crossLines.push(line);
   }
 
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < 24; i++) {
     for (const side of [-1, 1]) {
-      const group = new THREE.Group();
+      const g = new THREE.Group();
       const col = i % 2 ? 0x00f5ff : 0xff2bd6;
       const pole = new THREE.Mesh(
-        new THREE.BoxGeometry(.18, 2.0, .18),
+        new THREE.BoxGeometry(.18, 2.1, .18),
         new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .78 })
       );
-      pole.position.y = 1;
+      pole.position.y = 1.05;
       const cap = new THREE.Mesh(
-        new THREE.BoxGeometry(.65, .18, .65),
-        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .95 })
+        new THREE.BoxGeometry(.66, .18, .66),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .96 })
       );
-      cap.position.y = 2.05;
-      group.add(pole, cap);
-      group.position.set(side * 8.8, 0, -8 - i * 12);
-      group.userData.beacon = true;
-      trackGroup.add(group);
+      cap.position.y = 2.12;
+      g.add(pole, cap);
+      g.userData.z = -8 - i * 12;
+      g.userData.side = side;
+      roadGroup.add(g);
+      sideBeacons.push(g);
     }
   }
 
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     const hoop = makeHoop(i % 2 ? 0xff2bd6 : 0x00f5ff);
-    hoop.position.set(0, 5, -42 - i * 38);
-    hoop.userData.hoop = true;
-    trackGroup.add(hoop);
+    hoop.userData.z = -40 - i * 38;
+    roadGroup.add(hoop);
+    hoops.push(hoop);
   }
+
+  updateRoad(0);
 }
 
 function makeHoop(color) {
@@ -657,12 +670,12 @@ function buildPlayer() {
     roughness: .10
   });
 
-  const nose = new THREE.Mesh(new THREE.ConeGeometry(.56, 1.65, 4), bodyMat);
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(.56, 1.7, 4), bodyMat);
   nose.rotation.x = Math.PI / 2;
-  nose.position.z = -0.65;
+  nose.position.z = -0.68;
   player.add(nose);
 
-  const wing = new THREE.Mesh(new THREE.BoxGeometry(2.4, .10, .62), bodyMat);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(2.45, .10, .64), bodyMat);
   wing.position.set(0, .02, .35);
   player.add(wing);
 
@@ -672,11 +685,11 @@ function buildPlayer() {
   player.add(cabin);
 
   const engineMat = new THREE.MeshBasicMaterial({ color: 0xff2bd6 });
-  const engineL = new THREE.Mesh(new THREE.CylinderGeometry(.15, .15, .5, 14), engineMat);
+  const engineL = new THREE.Mesh(new THREE.CylinderGeometry(.15, .15, .52, 14), engineMat);
   engineL.rotation.x = Math.PI / 2;
-  engineL.position.set(-.52, -.02, 1.12);
+  engineL.position.set(-.54, -.02, 1.15);
   const engineR = engineL.clone();
-  engineR.position.x = .52;
+  engineR.position.x = .54;
   player.add(engineL, engineR);
 
   player.position.set(0, .75, PLAYER_Z);
@@ -690,11 +703,11 @@ function buildPlayer() {
 
 function buildStars() {
   const positions = [];
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 1100; i++) {
     positions.push(
-      THREE.MathUtils.randFloatSpread(180),
-      THREE.MathUtils.randFloat(7, 85),
-      THREE.MathUtils.randFloat(-290, 60)
+      THREE.MathUtils.randFloatSpread(190),
+      THREE.MathUtils.randFloat(7, 88),
+      THREE.MathUtils.randFloat(-310, 65)
     );
   }
   const geo = new THREE.BufferGeometry();
@@ -702,6 +715,63 @@ function buildStars() {
   const mat = new THREE.PointsMaterial({ color: 0x9eefff, size: .055, transparent: true, opacity: .9 });
   starPoints = new THREE.Points(geo, mat);
   scene.add(starPoints);
+}
+
+function curveStrength() {
+  if (state.table <= 3) return .5;
+  if (state.table <= 5) return 1.25;
+  if (state.table <= 8) return 2.3;
+  return 3.25;
+}
+
+function curveAt(z) {
+  const amp = curveStrength();
+  return Math.sin(distance * .030 + z * .032) * amp +
+         Math.sin(distance * .016 + z * .018) * amp * .38;
+}
+
+function updateRoad(scroll) {
+  distance += scroll;
+
+  for (const line of roadLines) {
+    const arr = line.geometry.attributes.position.array;
+    const offset = line.userData.offset;
+    for (let i = 0; i < 44; i++) {
+      const t = i / 43;
+      const z = ROAD_Z_NEAR + (ROAD_Z_FAR - ROAD_Z_NEAR) * t;
+      arr[i * 3 + 0] = curveAt(z) + offset;
+      arr[i * 3 + 1] = .04;
+      arr[i * 3 + 2] = z;
+    }
+    line.geometry.attributes.position.needsUpdate = true;
+  }
+
+  for (const line of crossLines) {
+    line.userData.z += scroll;
+    if (line.userData.z > ROAD_Z_NEAR) line.userData.z -= (ROAD_Z_NEAR - ROAD_Z_FAR);
+    const z = line.userData.z;
+    const c = curveAt(z);
+    const arr = line.geometry.attributes.position.array;
+    arr[0] = c - 9.1; arr[1] = .05; arr[2] = z;
+    arr[3] = c + 9.1; arr[4] = .05; arr[5] = z;
+    line.geometry.attributes.position.needsUpdate = true;
+  }
+
+  for (const b of sideBeacons) {
+    b.userData.z += scroll * 1.14;
+    if (b.userData.z > ROAD_Z_NEAR) b.userData.z -= 288;
+    b.position.set(curveAt(b.userData.z) + b.userData.side * 8.9, 0, b.userData.z);
+  }
+
+  for (const h of hoops) {
+    h.userData.z += scroll;
+    if (h.userData.z > ROAD_Z_NEAR) h.userData.z -= 266;
+    h.position.set(curveAt(h.userData.z), 5, h.userData.z);
+    h.rotation.z = Math.sin(distance * .02 + h.userData.z) * .05;
+  }
+
+  starPoints.position.z += scroll * .06;
+  if (starPoints.position.z > 20) starPoints.position.z = 0;
 }
 
 function makeQuestion() {
@@ -716,13 +786,7 @@ function makeQuestion() {
     if (w !== answer) wrongs.add(w);
   }
 
-  currentQuestion = {
-    a,
-    b,
-    answer,
-    options: shuffle([answer, ...wrongs])
-  };
-
+  currentQuestion = { a, b, answer, options: shuffle([answer, ...wrongs]) };
   hud.question.textContent = `${a} × ${b} = ?`;
 }
 
@@ -732,31 +796,41 @@ function spawnGateSet(z) {
   const correctLane = randInt(0, 2);
   const options = [];
   const wrongs = currentQuestion.options.filter(v => v !== currentQuestion.answer);
-
   options[correctLane] = currentQuestion.answer;
   let wi = 0;
   for (let i = 0; i < 3; i++) {
     if (i !== correctLane) options[i] = wrongs[wi++];
   }
 
+  const shieldActive = !state.boss && state.table >= 5 && Math.random() < .32;
+  const shieldLane = shieldActive ? correctLane : -1;
+
   const group = new THREE.Group();
   const colours = [0xff2bd6, 0x00f5ff, 0x8dff3f];
 
+  let shieldObject = null;
   for (let i = 0; i < 3; i++) {
-    const gate = makeGate(options[i], colours[i]);
+    const gate = makeGate(options[i], colours[i], shieldActive && i === shieldLane);
     gate.position.set(LANE_X[i], 2.45, 0);
     group.add(gate);
+    if (shieldActive && i === shieldLane) shieldObject = gate.userData.shieldObject;
   }
 
-  group.position.z = z;
+  group.position.set(curveAt(z), 0, z);
   scene.add(group);
 
   gateSet = {
     group,
+    z,
     correctLane,
     options,
-    answered: false
+    answered: false,
+    shieldActive,
+    shieldLane,
+    shieldObject
   };
+
+  if (shieldActive) toast("Shield gate ahead! Shoot the shield, then bash through.");
 }
 
 function removeGateSet() {
@@ -766,7 +840,7 @@ function removeGateSet() {
   }
 }
 
-function makeGate(number, color) {
+function makeGate(number, color, shield=false) {
   const group = new THREE.Group();
 
   const glow = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .88 });
@@ -787,46 +861,67 @@ function makeGate(number, color) {
   const backPanel = new THREE.Mesh(new THREE.BoxGeometry(3.55, 1.85, .08), panel);
   backPanel.position.set(0, .25, -.06);
 
-  const sign = makeNumberSprite(number, color);
+  const sign = makeTextSprite(number, color, "number");
   sign.position.set(0, .25, .08);
   sign.scale.set(5.7, 2.85, 1);
 
-  const label = makeLabelSprite("ANSWER GATE", color);
+  const label = makeTextSprite(shield ? "SHOOT SHIELD" : "ANSWER GATE", color, "label");
   label.position.set(0, 1.75, .09);
-  label.scale.set(3.5, .65, 1);
+  label.scale.set(shield ? 3.9 : 3.5, .65, 1);
 
   const light = new THREE.PointLight(color, 3.2, 14);
   light.position.set(0, .7, .6);
 
   group.add(postL, postR, top, floor, backPanel, sign, label, light);
+
+  if (shield) {
+    const shieldGroup = new THREE.Group();
+    const shieldMat = new THREE.MeshBasicMaterial({ color: 0x99ffff, transparent: true, opacity: .30, side: THREE.DoubleSide });
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .86 });
+    const disk = new THREE.Mesh(new THREE.CircleGeometry(2.15, 48), shieldMat);
+    disk.position.set(0, .2, .20);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.16, .055, 8, 48), ringMat);
+    ring.position.set(0, .2, .22);
+    shieldGroup.add(disk, ring);
+    group.add(shieldGroup);
+    group.userData.shieldObject = shieldGroup;
+  }
+
   return group;
 }
 
-function makeNumberSprite(text, color) {
+function makeTextSprite(text, color, kind) {
   const canvas = document.createElement("canvas");
   canvas.width = 512;
-  canvas.height = 256;
+  canvas.height = kind === "number" ? 256 : 128;
   const ctx = canvas.getContext("2d");
 
   const c = new THREE.Color(color);
   const css = `rgb(${Math.floor(c.r*255)},${Math.floor(c.g*255)},${Math.floor(c.b*255)})`;
 
-  ctx.clearRect(0, 0, 512, 256);
-  ctx.fillStyle = "rgba(0, 8, 22, .96)";
-  roundedRect(ctx, 18, 28, 476, 200, 36);
-  ctx.fill();
-
-  ctx.shadowColor = css;
-  ctx.shadowBlur = 22;
-  ctx.strokeStyle = css;
-  ctx.lineWidth = 10;
-  ctx.stroke();
-
-  ctx.font = "1000 158px system-ui, Segoe UI, sans-serif";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(String(text), 256, 136);
+
+  if (kind === "number") {
+    ctx.fillStyle = "rgba(0, 8, 22, .96)";
+    roundedRect(ctx, 18, 28, 476, 200, 36);
+    ctx.fill();
+    ctx.shadowColor = css;
+    ctx.shadowBlur = 22;
+    ctx.strokeStyle = css;
+    ctx.lineWidth = 10;
+    ctx.stroke();
+    ctx.font = "1000 158px system-ui, Segoe UI, sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(String(text), 256, 136);
+  } else {
+    ctx.font = "1000 56px system-ui, Segoe UI, sans-serif";
+    ctx.shadowColor = css;
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(String(text), 256, 64);
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -834,48 +929,481 @@ function makeNumberSprite(text, color) {
   return new THREE.Sprite(mat);
 }
 
-function makeLabelSprite(text, color) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 128;
-  const ctx = canvas.getContext("2d");
-  const c = new THREE.Color(color);
-  const css = `rgb(${Math.floor(c.r*255)},${Math.floor(c.g*255)},${Math.floor(c.b*255)})`;
+function startBoss() {
+  removeBoss();
 
-  ctx.clearRect(0, 0, 512, 128);
-  ctx.font = "1000 58px system-ui, Segoe UI, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.shadowColor = css;
-  ctx.shadowBlur = 14;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(text, 256, 64);
+  const hp = state.table >= state.finalTable ? 4 : 3;
+  const group = makeBossShip();
+  group.position.set(curveAt(-78), 6, -78);
+  scene.add(group);
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: true });
-  return new THREE.Sprite(mat);
+  state.boss = {
+    group,
+    hp,
+    maxHp: hp,
+    openTimer: 0,
+    z: -78
+  };
+
+  toast(state.table >= state.finalTable ? "Final mothership! Answer, then shoot!" : "Boss ship ahead! Answer correctly to open its shield.");
+  audio.boost();
 }
 
-function spawnAlien() {
-  if (aliens.length >= 3 || Math.random() > .012) return;
+function makeBossShip() {
+  const group = new THREE.Group();
+
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: 0x181021,
+    emissive: 0xff2bd6,
+    emissiveIntensity: .70,
+    metalness: .78,
+    roughness: .18
+  });
+  const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .86 });
+
+  const core = new THREE.Mesh(new THREE.SphereGeometry(1.7, 32, 16), bodyMat);
+  core.scale.set(1.9, .55, 1.2);
+  group.add(core);
+
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(2.75, .08, 10, 64), cyanMat);
+  ring.rotation.x = Math.PI / 2;
+  group.add(ring);
+
+  const wingMat = new THREE.MeshStandardMaterial({
+    color: 0x0a1d3d,
+    emissive: 0x00f5ff,
+    emissiveIntensity: .45,
+    metalness: .7,
+    roughness: .18
+  });
+
+  const wingL = new THREE.Mesh(new THREE.BoxGeometry(3.4, .22, 1.1), wingMat);
+  wingL.position.x = -2.5;
+  wingL.rotation.z = .22;
+  const wingR = wingL.clone();
+  wingR.position.x = 2.5;
+  wingR.rotation.z = -.22;
+  group.add(wingL, wingR);
+
+  const shield = new THREE.Mesh(
+    new THREE.SphereGeometry(3.3, 32, 16),
+    new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .18, wireframe: true })
+  );
+  shield.userData.isBossShield = true;
+  group.add(shield);
+
+  const light = new THREE.PointLight(0xff2bd6, 4.5, 20);
+  light.position.y = .6;
+  group.add(light);
+
+  return group;
+}
+
+function removeBoss() {
+  if (state.boss) {
+    scene.remove(state.boss.group);
+    state.boss = null;
+  }
+}
+
+function updateBoss(dt) {
+  if (!state.boss) return;
+
+  const boss = state.boss;
+  boss.group.position.x = curveAt(boss.z);
+  boss.group.position.z = boss.z;
+  boss.group.rotation.y += dt * .45;
+  boss.group.rotation.z = Math.sin(performance.now() * .0012) * .08;
+
+  if (boss.openTimer > 0) {
+    boss.openTimer -= dt;
+  }
+
+  const shield = boss.group.children.find(child => child.userData && child.userData.isBossShield);
+  if (shield && shield.material) {
+    shield.material.opacity = boss.openTimer > 0 ? .04 : .22;
+  }
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), .04);
+
+  if (running && !paused && !state.gameOver) update(dt);
+  render(dt);
+}
+
+function update(dt) {
+  updatePlayer(dt);
+
+  if (state.countdown > 0) {
+    state.countdown -= dt;
+    updateRoad(0);
+    updateBoss(dt);
+    updateHud();
+    return;
+  }
+
+  if (state.boostTimer > 0) {
+    state.boostTimer -= dt;
+    state.boost = Math.max(state.boost, 9);
+  }
+
+  const speed = state.speed + state.boost;
+  const scroll = speed * dt * 1.05;
+
+  updateRoad(scroll);
+  updateGate(scroll, dt);
+  updateBoss(dt);
+  updateAliens(scroll, dt);
+  updateLasers(dt);
+  updateParticles(dt);
+  maybeSpawnAlien();
+
+  if (state.waitingForNextGate > 0) {
+    state.waitingForNextGate -= dt;
+    if (state.waitingForNextGate <= 0 && !state.gameOver) {
+      makeQuestion();
+      spawnGateSet(-110);
+    }
+  }
+
+  state.boost = Math.max(0, state.boost - 4.2 * dt);
+  state.speed = THREE.MathUtils.lerp(state.speed, state.baseSpeed, .75 * dt);
+  updateHud();
+}
+
+function updatePlayer(dt) {
+  if (inputMove !== 0) {
+    lane = clamp(lane + inputMove, 0, 2);
+    targetLane = lane;
+    inputMove = 0;
+  }
+
+  const targetX = curveAt(PLAYER_Z) + LANE_X[targetLane];
+  player.position.x = THREE.MathUtils.lerp(player.position.x, targetX, 12 * dt);
+  player.position.z = PLAYER_Z;
+  player.rotation.z = THREE.MathUtils.lerp(player.rotation.z, -(targetX - player.position.x) * .12, 7 * dt);
+  player.position.y = .75 + Math.sin(performance.now() * .006) * .05;
+  playerLight.position.x = player.position.x;
+}
+
+function updateGate(scroll, dt) {
+  if (!gateSet || state.waitingForNextGate > 0) return;
+
+  gateSet.z += scroll;
+  gateSet.group.position.x = curveAt(gateSet.z);
+  gateSet.group.position.z = gateSet.z;
+  gateSet.group.rotation.y = Math.sin(performance.now() * .001) * .015;
+
+  if (gateSet.answered) {
+    for (const gate of gateSet.group.children) {
+      for (const part of gate.children) {
+        if (part.userData.smashVel) {
+          part.position.addScaledVector(part.userData.smashVel, dt);
+          part.rotation.x += dt * 4.5;
+          part.rotation.y += dt * 4.0;
+          if (part.material && "opacity" in part.material) {
+            part.material.opacity = Math.max(0, part.material.opacity - dt * 1.6);
+          }
+        }
+      }
+    }
+  }
+
+  if (!gateSet.answered && gateSet.z >= PLAYER_Z - 1.3) {
+    gateSet.answered = true;
+    const chosen = targetLane;
+    const chosenNumber = gateSet.options[chosen];
+
+    if (gateSet.shieldActive && chosen === gateSet.shieldLane) {
+      smashGate(chosen, false);
+      shieldBlocked();
+    } else {
+      smashGate(chosen, chosen === gateSet.correctLane);
+      if (chosen === gateSet.correctLane) {
+        correctAnswer();
+      } else {
+        wrongAnswer(chosenNumber, currentQuestion.answer);
+      }
+    }
+
+    state.waitingForNextGate = .72;
+    setTimeout(() => removeGateSet(), 130);
+  }
+
+  if (gateSet && gateSet.z > PLAYER_Z + 18) {
+    removeGateSet();
+  }
+}
+
+function smashGate(chosenLane, isCorrect) {
+  if (!gateSet) return;
+  const color = isCorrect ? 0x00f5ff : 0xff3f5f;
+  const x = curveAt(PLAYER_Z) + LANE_X[chosenLane];
+
+  burst(x, 2.0, PLAYER_Z - 1.35, color, isCorrect ? 36 : 24);
+  burst(x, .75, PLAYER_Z - .8, color, isCorrect ? 18 : 12);
+  flash(color);
+
+  const chosenGate = gateSet.group.children[chosenLane];
+  if (chosenGate) {
+    chosenGate.children.forEach((part, index) => {
+      part.userData.smashVel = new THREE.Vector3(
+        (index % 2 === 0 ? -1 : 1) * randFloat(3.0, 7.0),
+        randFloat(.8, 4.6),
+        randFloat(2.0, 7.0)
+      );
+    });
+  }
+}
+
+function correctAnswer() {
+  state.streak++;
+  state.score += 120 + state.streak * 22;
+  state.ammo = Math.min(15, state.ammo + 1);
+  state.boostCharges = Math.min(6, state.boostCharges + (state.streak % 3 === 0 ? 2 : 1));
+  state.boost = Math.min(18, state.boost + 5.2);
+  state.speed = Math.min(state.baseSpeed + 6.5, state.speed + 1.2);
+  audio.correct();
+
+  if (state.boss) {
+    state.boss.openTimer = 2.8;
+    toast("Correct! Boss shield open — shoot now!");
+    return;
+  }
+
+  state.correctInTable++;
+
+  if (state.streak > 0 && state.streak % 5 === 0) {
+    state.boostCharges = Math.min(7, state.boostCharges + 2);
+    state.ammo = Math.min(15, state.ammo + 3);
+    state.boost = Math.min(22, state.boost + 6);
+    toast("Overdrive streak! Extra ammo and boost!");
+    audio.boost();
+  } else {
+    toast("Correct! Gate smashed. Ammo + boost charge.");
+  }
+
+  if (state.correctInTable >= state.needCorrect) {
+    state.correctInTable = 0;
+
+    if (shouldStartBoss()) {
+      startBoss();
+    } else if (state.table < state.finalTable) {
+      state.table++;
+      state.score += 260;
+      state.ammo = Math.min(15, state.ammo + 2);
+      state.boostCharges = Math.min(7, state.boostCharges + 1);
+      toast(`Stage cleared. Now ×${state.table}.`);
+    } else {
+      startBoss();
+    }
+  }
+}
+
+function shouldStartBoss() {
+  return state.table === 4 || state.table === 8 || state.table >= state.finalTable;
+}
+
+function wrongAnswer(chosen, answer) {
+  state.streak = 0;
+  state.score = Math.max(0, state.score - 35);
+  state.speed = Math.max(7, state.speed - 1.2);
+  state.boost = 0;
+  state.lives--;
+  audio.wrong();
+  toast(`${chosen} is not ${answer}. Wrong gate smashed!`);
+  if (state.lives <= 0) lose();
+}
+
+function shieldBlocked() {
+  state.streak = 0;
+  state.lives--;
+  state.speed = Math.max(7, state.speed - 1.5);
+  state.boost = 0;
+  audio.wrong();
+  toast("Shield blocked you! Shoot shield gates before bashing.");
+  if (state.lives <= 0) lose();
+}
+
+function useBoost() {
+  if (!running || paused || state.gameOver) return;
+  if (state.boostCharges <= 0) {
+    toast("No boost charge. Get correct gates to charge 🚀.");
+    audio.wrong();
+    return;
+  }
+
+  state.boostCharges--;
+  state.boostTimer = 1.35;
+  state.boost = Math.max(state.boost, 14);
+  flash(0x8dff3f);
+  audio.boost();
+  toast("BOOST!");
+  updateHud();
+}
+
+function shoot() {
+  if (!running || paused || state.gameOver) return;
+  if (state.ammo <= 0) {
+    toast("No ammo. Correct gates recharge ⚡.");
+    audio.wrong();
+    return;
+  }
+
+  state.ammo--;
+  audio.shoot();
+
+  const group = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .98 });
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(.15, .15, 3.4), mat);
+  group.add(beam);
+  const light = new THREE.PointLight(0x00f5ff, 2, 11);
+  group.add(light);
+
+  group.position.set(player.position.x, .9, PLAYER_Z - 2.4);
+  scene.add(group);
+  lasers.push({ group });
+  updateHud();
+}
+
+function updateLasers(dt) {
+  for (let i = lasers.length - 1; i >= 0; i--) {
+    const l = lasers[i];
+    l.group.position.z -= 96 * dt;
+
+    if (hitShieldGate(l)) {
+      scene.remove(l.group);
+      lasers.splice(i, 1);
+      continue;
+    }
+
+    if (hitBoss(l)) {
+      scene.remove(l.group);
+      lasers.splice(i, 1);
+      continue;
+    }
+
+    let hit = false;
+    for (let j = aliens.length - 1; j >= 0; j--) {
+      const a = aliens[j];
+      if (
+        Math.abs(l.group.position.x - a.group.position.x) < 1.25 &&
+        Math.abs(l.group.position.z - a.group.position.z) < 1.6
+      ) {
+        burst(a.group.position.x, 1.2, a.group.position.z, a.group.userData.color || 0xff2bd6, 18);
+        scene.remove(a.group);
+        aliens.splice(j, 1);
+        scene.remove(l.group);
+        lasers.splice(i, 1);
+        state.score += 160;
+        audio.boom();
+        hit = true;
+        break;
+      }
+    }
+    if (hit) continue;
+
+    if (l.group.position.z < -150) {
+      scene.remove(l.group);
+      lasers.splice(i, 1);
+    }
+  }
+}
+
+function hitShieldGate(laser) {
+  if (!gateSet || !gateSet.shieldActive || !gateSet.shieldObject || gateSet.answered) return false;
+
+  const shieldX = curveAt(gateSet.z) + LANE_X[gateSet.shieldLane];
+  if (Math.abs(laser.group.position.x - shieldX) < 2.2 &&
+      Math.abs(laser.group.position.z - gateSet.z) < 2.2) {
+    scene.remove(gateSet.shieldObject);
+    gateSet.shieldObject = null;
+    gateSet.shieldActive = false;
+    burst(shieldX, 2.3, gateSet.z, 0x00f5ff, 24);
+    state.score += 80;
+    audio.boom();
+    toast("Shield broken! Bash through the correct gate!");
+    return true;
+  }
+  return false;
+}
+
+function hitBoss(laser) {
+  if (!state.boss) return false;
+  const boss = state.boss;
+
+  if (Math.abs(laser.group.position.x - boss.group.position.x) < 3.2 &&
+      Math.abs(laser.group.position.z - boss.z) < 2.6) {
+    if (boss.openTimer <= 0) {
+      toast("Boss shield is closed. Answer correctly first!");
+      burst(laser.group.position.x, 1.4, laser.group.position.z, 0xff2bd6, 8);
+      audio.wrong();
+      return true;
+    }
+
+    boss.hp--;
+    boss.openTimer = 0;
+    state.score += 300;
+    burst(boss.group.position.x, 6, boss.z, 0xffd45a, 34);
+    audio.boom();
+
+    if (boss.hp <= 0) {
+      defeatBoss();
+    } else {
+      toast(`Boss hit! ${boss.hp} HP left.`);
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function defeatBoss() {
+  if (!state.boss) return;
+
+  const final = state.table >= state.finalTable;
+  burst(state.boss.group.position.x, 6, state.boss.z, 0xffd45a, 60);
+  scene.remove(state.boss.group);
+  state.boss = null;
+  state.score += final ? 1000 : 500;
+  audio.win();
+
+  if (final) {
+    win();
+  } else {
+    state.table++;
+    state.correctInTable = 0;
+    state.ammo = Math.min(15, state.ammo + 4);
+    state.boostCharges = Math.min(7, state.boostCharges + 2);
+    toast(`Boss defeated! Entering ×${state.table}.`);
+  }
+}
+
+function maybeSpawnAlien() {
+  if (state.countdown > 0 || state.boss) return;
+  if (aliens.length >= 4) return;
+  const chance = state.table >= 6 ? .020 : .012;
+  if (Math.random() > chance) return;
 
   const group = makeAlien();
   const alienLane = randInt(0, 2);
-  group.position.set(LANE_X[alienLane], 1.2, -110);
+  const z = -115;
+  group.position.set(curveAt(z) + LANE_X[alienLane], 1.2, z);
   scene.add(group);
 
   aliens.push({
     group,
     lane: alienLane,
-    hp: 1,
+    z,
     phase: Math.random() * 10
   });
 }
 
 function makeAlien() {
   const group = new THREE.Group();
-  const colors = [0xff2bd6, 0x8dff3f, 0xffcc4d];
+  const colors = [0xff2bd6, 0x8dff3f, 0xffd45a];
   const color = randomChoice(colors);
 
   const mat = new THREE.MeshStandardMaterial({
@@ -909,264 +1437,31 @@ function makeAlien() {
   return group;
 }
 
-function animate() {
-  requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), .04);
-
-  if (running && !paused && !state.gameOver) update(dt);
-  render(dt);
-}
-
-function update(dt) {
-  updatePlayer(dt);
-
-  if (state.countdown > 0) {
-    state.countdown -= dt;
-    updateHud();
-    return;
-  }
-
-  const speed = (state.speed + state.boost);
-  updateTrack(speed * dt * 1.08);
-  updateGate(speed * dt * 1.08);
-  updateAliens(speed * dt * 1.08, dt);
-  updateLasers(dt);
-  updateParticles(dt);
-  spawnAlien();
-
-  if (state.waitingForNextGate > 0) {
-    state.waitingForNextGate -= dt;
-    if (state.waitingForNextGate <= 0) {
-      makeQuestion();
-      spawnGateSet(-104);
-    }
-  }
-
-  state.boost = Math.max(0, state.boost - 3.5 * dt);
-  state.speed = THREE.MathUtils.lerp(state.speed, state.baseSpeed, .7 * dt);
-
-  updateHud();
-}
-
-function updatePlayer(dt) {
-  if (inputMove !== 0) {
-    lane = clamp(lane + inputMove, 0, 2);
-    targetX = LANE_X[lane];
-    inputMove = 0;
-  }
-
-  player.position.x = THREE.MathUtils.lerp(player.position.x, targetX, 11 * dt);
-  player.rotation.z = THREE.MathUtils.lerp(player.rotation.z, -(targetX - player.position.x) * .12, 7 * dt);
-  player.position.y = .75 + Math.sin(performance.now() * .006) * .05;
-  playerLight.position.x = player.position.x;
-}
-
-function updateTrack(scroll) {
-  for (const child of trackGroup.children) {
-    if (child.userData.scrollLine) {
-      child.position.z += scroll;
-      if (child.position.z > 26) child.position.z -= 285;
-    }
-    if (child.userData.beacon) {
-      child.position.z += scroll * 1.15;
-      if (child.position.z > 26) child.position.z -= 264;
-    }
-    if (child.userData.hoop) {
-      child.position.z += scroll;
-      child.rotation.z = Math.sin(performance.now() * .001 + child.position.z) * .04;
-      if (child.position.z > 26) child.position.z -= 228;
-    }
-  }
-
-  starPoints.position.z += scroll * .06;
-  if (starPoints.position.z > 20) starPoints.position.z = 0;
-}
-
-function updateGate(scroll) {
-  if (!gateSet || state.waitingForNextGate > 0) return;
-
-  gateSet.group.position.z += scroll;
-  gateSet.group.rotation.y = Math.sin(performance.now() * .001) * .015;
-
-  // Animate broken gate pieces after impact.
-  if (gateSet.answered) {
-    for (const gate of gateSet.group.children) {
-      for (const part of gate.children) {
-        if (part.userData.smashVel) {
-          part.position.addScaledVector(part.userData.smashVel, .035);
-          part.rotation.x += .16;
-          part.rotation.y += .12;
-          if (part.material && "opacity" in part.material) {
-            part.material.opacity = Math.max(0, part.material.opacity - .045);
-          }
-        }
-      }
-    }
-  }
-
-  const z = gateSet.group.position.z;
-
-  // Trigger when the player's ship smashes into the gate plane.
-  if (!gateSet.answered && z >= PLAYER_Z - 1.5) {
-    gateSet.answered = true;
-    const chosen = lane;
-    const chosenNumber = gateSet.options[chosen];
-    const isCorrect = chosen === gateSet.correctLane;
-
-    smashChosenGate(chosen, isCorrect);
-
-    if (isCorrect) {
-      correctAnswer();
-    } else {
-      wrongAnswer(chosenNumber, currentQuestion.answer);
-    }
-
-    state.waitingForNextGate = .72;
-    setTimeout(() => removeGateSet(), 120);
-  }
-
-  if (z > PLAYER_Z + 18) {
-    removeGateSet();
-  }
-}
-
-function smashChosenGate(chosenLane, isCorrect) {
-  if (!gateSet) return;
-
-  const color = isCorrect ? 0x00f5ff : 0xff3f5f;
-  const x = LANE_X[chosenLane];
-
-  burst(x, 2.2, PLAYER_Z - 1.4, color, isCorrect ? 34 : 24);
-  burst(x, .75, PLAYER_Z - 1.0, color, isCorrect ? 18 : 12);
-
-  // Push the chosen gate pieces apart for a quick "bash through" feeling.
-  const chosenGate = gateSet.group.children[chosenLane];
-  if (chosenGate) {
-    chosenGate.children.forEach((part, index) => {
-      part.userData.smashVel = new THREE.Vector3(
-        (index % 2 === 0 ? -1 : 1) * randFloat(2.2, 5.2),
-        randFloat(.8, 3.8),
-        randFloat(1.5, 5.5)
-      );
-    });
-  }
-
-  flash(color);
-}
-
-function correctAnswer() {
-  state.streak++;
-  state.correctInTable++;
-  state.score += 120 + state.streak * 20;
-  state.ammo = Math.min(12, state.ammo + 1);
-  state.boost = Math.min(16, state.boost + 5.0);
-  state.speed = Math.min(state.baseSpeed + 6, state.speed + 1.2);
-  flash(0x00f5ff);
-  burst(player.position.x, 1.0, PLAYER_Z - 1.6, 0x00f5ff, 18);
-  audio.correct();
-
-  if (state.streak > 0 && state.streak % 5 === 0) {
-    state.boost = Math.min(20, state.boost + 5);
-    state.ammo = Math.min(12, state.ammo + 3);
-    toast("Overdrive! 5 correct in a row.");
-    audio.boost();
-  } else {
-    toast("Correct! You smashed through the answer gate!");
-  }
-
-  if (state.correctInTable >= state.needCorrect) {
-    state.correctInTable = 0;
-    if (state.table < state.finalTable) {
-      state.table++;
-      state.score += 300;
-      state.ammo = Math.min(12, state.ammo + 3);
-      toast(`Table cleared. Now ×${state.table}.`);
-    } else {
-      win();
-    }
-  }
-}
-
-function wrongAnswer(chosen, answer) {
-  state.streak = 0;
-  state.score = Math.max(0, state.score - 35);
-  state.speed = Math.max(4.5, state.speed - 1);
-  state.boost = 0;
-  state.lives--;
-  flash(0xff3f5f);
-  burst(player.position.x, 1.0, PLAYER_Z - 1.6, 0xff3f5f, 14);
-  audio.wrong();
-  toast(`${chosen} is not ${answer}. You bashed the wrong gate!`);
-  if (state.lives <= 0) lose();
-}
-
 function updateAliens(scroll, dt) {
   for (let i = aliens.length - 1; i >= 0; i--) {
     const a = aliens[i];
-    a.group.position.z += scroll * .95;
+    a.z += scroll * .92;
     a.phase += dt * 3;
-    a.group.position.x = LANE_X[a.lane] + Math.sin(a.phase) * .30;
+    a.group.position.x = curveAt(a.z) + LANE_X[a.lane] + Math.sin(a.phase) * .25;
+    a.group.position.z = a.z;
     a.group.rotation.z = Math.sin(a.phase * 1.5) * .13;
 
-    if (a.group.position.z > PLAYER_Z + 16) {
+    if (a.z > PLAYER_Z - 1.2 && a.z < PLAYER_Z + 1.4 && Math.abs(a.group.position.x - player.position.x) < 1.25) {
+      state.lives--;
+      state.streak = 0;
+      state.boost = 0;
+      burst(a.group.position.x, 1.1, a.z, a.group.userData.color || 0xff2bd6, 24);
       scene.remove(a.group);
       aliens.splice(i, 1);
+      audio.boom();
+      toast("Alien blocker hit! Shoot them or dodge lanes.");
+      if (state.lives <= 0) lose();
+      continue;
     }
-  }
-}
 
-function shoot() {
-  if (!running || paused || state.gameOver) return;
-  if (state.ammo <= 0) {
-    toast("No ammo. Answer correctly to recharge.");
-    audio.wrong();
-    return;
-  }
-
-  state.ammo--;
-  audio.shoot();
-
-  const group = new THREE.Group();
-  const mat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .98 });
-  const beam = new THREE.Mesh(new THREE.BoxGeometry(.15, .15, 3.2), mat);
-  group.add(beam);
-  const light = new THREE.PointLight(0x00f5ff, 2, 10);
-  group.add(light);
-
-  group.position.set(player.position.x, .9, PLAYER_Z - 2.4);
-  scene.add(group);
-  lasers.push({ group });
-  updateHud();
-}
-
-function updateLasers(dt) {
-  for (let i = lasers.length - 1; i >= 0; i--) {
-    const l = lasers[i];
-    l.group.position.z -= 90 * dt;
-
-    let hit = false;
-    for (let j = aliens.length - 1; j >= 0; j--) {
-      const a = aliens[j];
-      if (
-        Math.abs(l.group.position.x - a.group.position.x) < 1.1 &&
-        Math.abs(l.group.position.z - a.group.position.z) < 1.5
-      ) {
-        burst(a.group.position.x, 1.2, a.group.position.z, a.group.userData.color || 0xff2bd6, 18);
-        scene.remove(a.group);
-        aliens.splice(j, 1);
-        scene.remove(l.group);
-        lasers.splice(i, 1);
-        state.score += 160;
-        audio.boom();
-        hit = true;
-        break;
-      }
-    }
-    if (hit) continue;
-
-    if (l.group.position.z < -140) {
-      scene.remove(l.group);
-      lasers.splice(i, 1);
+    if (a.z > PLAYER_Z + 16) {
+      scene.remove(a.group);
+      aliens.splice(i, 1);
     }
   }
 }
@@ -1182,8 +1477,8 @@ function burst(x, y, z, color, count) {
 
     particles.push({
       mesh,
-      life: randFloat(.35, .8),
-      vel: new THREE.Vector3(randFloat(-4.5, 4.5), randFloat(.5, 4.5), randFloat(-4.5, 4.5))
+      life: randFloat(.35, .9),
+      vel: new THREE.Vector3(randFloat(-5.2, 5.2), randFloat(.5, 5.0), randFloat(-5.2, 5.2))
     });
   }
 }
@@ -1207,10 +1502,11 @@ function updateParticles(dt) {
 
 function render(dt) {
   if (player) {
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, player.position.x * .30, 4 * dt);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 5.3 + state.boost * .05, 3 * dt);
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, 15.0 + state.boost * .04, 3 * dt);
-    camera.lookAt(player.position.x * .15, 1.0, -27);
+    const playerTargetX = curveAt(PLAYER_Z) + LANE_X[targetLane];
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, playerTargetX * .32, 4 * dt);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 5.2 + state.boost * .045, 3 * dt);
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, 15.0 + state.boost * .03, 3 * dt);
+    camera.lookAt(curveAt(-30) * .55, 1.0, -28);
   }
   renderer.render(scene, camera);
 }
@@ -1218,14 +1514,22 @@ function render(dt) {
 function updateHud() {
   hud.speed.textContent = Math.round(state.speed + state.boost);
   hud.ammo.textContent = state.ammo;
+  hud.boost.textContent = state.boostCharges;
   hud.lives.textContent = state.lives;
   hud.score.textContent = state.score;
+
+  if (state.boss) {
+    hud.objective.textContent = `Boss battle: answer correctly to open shield, then shoot. Boss HP ${state.boss.hp}/${state.boss.maxHp}`;
+  } else {
+    hud.objective.textContent = `Objective: ×${state.table} stage — correct gates ${state.correctInTable}/${state.needCorrect}. Final endpoint: ×${state.finalTable} portal.`;
+  }
 }
 
 function clearObjects() {
   removeGateSet();
+  removeBoss();
 
-  for (const arr of [aliens, lasers, enemyShots, particles]) {
+  for (const arr of [aliens, lasers, particles]) {
     while (arr.length) {
       const item = arr.pop();
       scene.remove(item.group || item.mesh);
@@ -1235,12 +1539,14 @@ function clearObjects() {
 
 function win() {
   state.gameOver = true;
-  audio.win();
+  removeGateSet();
+  removeBoss();
   $("center").classList.remove("hidden");
   $("center").innerHTML = `
-    <h1>Grid Champion!</h1>
-    <p>You cleared the race from ×${$("startTable").value} to ×${state.finalTable}.</p>
-    <p><b>Score:</b> ${state.score}</p>
+    <h1>Mission Complete!</h1>
+    <p>You cleared the final TRON portal and escaped the alien grid.</p>
+    <p><b>Score:</b> ${state.score} &nbsp; <b>Best streak:</b> ${state.streak}</p>
+    <p><b>Rank:</b> ${state.score >= 9000 ? "TRON Math Champion" : state.score >= 5500 ? "Hyper Racer" : "Neon Blaster"}</p>
     <div class="row"><button class="bigBtn" onclick="location.reload()">Race Again</button></div>
   `;
 }
@@ -1250,7 +1556,7 @@ function lose() {
   $("center").classList.remove("hidden");
   $("center").innerHTML = `
     <h1>Race Over</h1>
-    <p>The alien racers caught up.</p>
+    <p>The alien fleet caught up before you reached the portal.</p>
     <p><b>Score:</b> ${state.score} &nbsp; <b>Reached:</b> ×${state.table}</p>
     <div class="row"><button class="bigBtn" onclick="location.reload()">Try Again</button></div>
   `;
@@ -1270,6 +1576,10 @@ function keyDown(e) {
   if (e.code === "Space") {
     e.preventDefault();
     shoot();
+  }
+  if (e.key === "Shift" || e.key.toLowerCase() === "w") {
+    e.preventDefault();
+    useBoost();
   }
   if (e.key.toLowerCase() === "p") togglePause();
 }
@@ -1298,7 +1608,7 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 1400);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1500);
 }
 
 function flash(color) {
