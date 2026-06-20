@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v20</title>
+<title>TRON Math Gate Racer v21</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -126,8 +126,8 @@
 
   #topButtons {
     position:fixed;
-    top:calc(env(safe-area-inset-top, 0px) + 88px);
-    right:9px;
+    left:12px;
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 108px);
     display:flex;
     gap:7px;
     z-index:7;
@@ -580,7 +580,7 @@
     height:clamp(58px, 15vw, 76px);
     border-radius:18px;
     font-size:clamp(22px, 6.5vw, 34px);
-    align-self:flex-end;
+    align-self:center;
   }
 
   .pedal {
@@ -682,16 +682,18 @@ window.addEventListener("error", function(e) {
       <button id="rightBtn" class="ctrl">▶</button>
     </div>
     <div class="pedalCluster">
-      <button id="shootBtn" class="ctrl miniShoot">⚡</button>
       <button id="brakeBtn" class="pedal brakePedal">BRAKE<br>▼</button>
-      <button id="accelBtn" class="pedal accelPedal">ACCEL<br>▲</button>
+      <div class="fireAccelColumn">
+        <button id="shootBtn" class="ctrl miniShoot">⚡</button>
+        <button id="accelBtn" class="pedal accelPedal">ACCEL<br>▲</button>
+      </div>
     </div>
   </div>
 
   <div id="center">
     <h1>TRON Math<br>Gate Racer v20</h1>
     <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon TRON finish portal.</p><p>The counter shows gates left to the next boss. Default: 12 gates to Boss 1.</p>
-    <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
+    <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges. No shield blocks on answer gates.</p>
     <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, 5× max speed, boss gate counter, softer acceleration sound, shooting sounds, unique boss ships, and a neon TRON finish line.</p>
     <div class="stageList">
       <div class="stageItem"><b>Stage 1 Objective</b><span>Clear ×2, ×3 and ×4. Smash 4 correct gates in each table, then defeat Boss 1.</span></div>
@@ -1343,8 +1345,8 @@ function spawnGateSet(z) {
     if (i !== correctLane) options[i] = wrongs[wi++];
   }
 
-  const shieldActive = !state.boss && state.table >= 6 && Math.random() < .22;
-  const shieldLane = shieldActive ? correctLane : -1;
+  const shieldActive = false;
+  const shieldLane = -1;
 
   const group = new THREE.Group();
   const colours = [0xff2bd6, 0x00f5ff, 0x8dff3f];
@@ -1371,7 +1373,7 @@ function spawnGateSet(z) {
     shieldObject
   };
 
-  if (shieldActive) toast("Shield gate ahead! Shoot the shield, then bash through.");
+
 }
 
 function removeGateSet() {
@@ -1415,18 +1417,6 @@ function makeGate(number, color, shield=false) {
 
   group.add(postL, postR, top, floor, backPanel, sign, label, light);
 
-  if (shield) {
-    const shieldGroup = new THREE.Group();
-    const shieldMat = new THREE.MeshBasicMaterial({ color: 0x99ffff, transparent: true, opacity: .30, side: THREE.DoubleSide });
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .86 });
-    const disk = new THREE.Mesh(new THREE.CircleGeometry(2.15, 48), shieldMat);
-    disk.position.set(0, .2, .20);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.16, .055, 8, 48), ringMat);
-    ring.position.set(0, .2, .22);
-    shieldGroup.add(disk, ring);
-    group.add(shieldGroup);
-    group.userData.shieldObject = shieldGroup;
-  }
 
   return group;
 }
@@ -2094,7 +2084,7 @@ function shieldBlocked() {
   state.speed = Math.max(state.baseSpeed * 0.55, state.speed - 1.5);
   state.boost = 0;
   audio.wrong();
-  toast("Shield blocked you! Shoot shield gates before bashing.");
+  toast("Wrong lane. Try again!");
   if (state.lives <= 0) lose();
 }
 
@@ -2435,7 +2425,7 @@ function updateHud() {
   if (hud.gatesLabel) hud.gatesLabel.textContent = bossGateInfo.label;
 
   if (state.boss) {
-    hud.objective.textContent = `Boss battle: answer correctly to open shield, then shoot. Boss HP ${state.boss.hp}/${state.boss.maxHp}`;
+    hud.objective.textContent = `Boss battle: answer correctly to open the boss shield, then shoot. Boss HP ${state.boss.hp}/${state.boss.maxHp}`;
   } else {
     const stageInfo = getStageProgressInfo();
     hud.objective.textContent = `Objective: ${stageInfo.title} — ${stageInfo.objective} Progress: ${state.correctInTable}/${state.needCorrect} in ×${state.table}.`;
@@ -2844,4 +2834,4 @@ if (document.readyState !== "loading") {
 }
 </script>
 </body>
-  </html>
+</html>
