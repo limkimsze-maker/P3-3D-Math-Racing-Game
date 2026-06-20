@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v18</title>
+<title>TRON Math Gate Racer v20</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -291,7 +291,112 @@
 
 
 
-  #bossWarning {
+
+  .stageList {
+    margin:12px 0 14px;
+    display:grid;
+    gap:8px;
+  }
+
+  .stageItem {
+    text-align:left;
+    border:1px solid rgba(0,245,255,.24);
+    border-radius:14px;
+    padding:10px 12px;
+    background:rgba(0,16,35,.42);
+    box-shadow:inset 0 0 14px rgba(0,245,255,.04);
+  }
+
+  .stageItem b {
+    color:#ffffff;
+  }
+
+  .stageItem span {
+    color:#c8f8ff;
+    display:block;
+    margin-top:3px;
+    font-size:13px;
+    line-height:1.35;
+  }
+
+  .saveRow {
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+
+  .smallBtn {
+    min-width:180px;
+    padding:11px 14px;
+    border-radius:14px;
+    font-weight:900;
+    letter-spacing:.3px;
+  }
+
+  #resumeWrap {
+    display:none;
+  }
+
+  #resumeWrap.show {
+    display:flex;
+  }
+
+  #saveNote {
+    margin-top:8px;
+    font-size:13px;
+    color:#dffcff;
+    opacity:.9;
+  }
+
+  #stageCard {
+    position:fixed;
+    left:50%;
+    top:45%;
+    transform:translate(-50%, -50%) scale(.92);
+    z-index:17;
+    width:min(640px, calc(100vw - 34px));
+    padding:16px 16px 14px;
+    border-radius:20px;
+    background:rgba(0,14,34,.94);
+    border:2px solid rgba(0,245,255,.8);
+    box-shadow:0 0 36px rgba(0,245,255,.18), inset 0 0 24px rgba(0,245,255,.06);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+    text-align:center;
+  }
+
+  #stageCard.show {
+    opacity:1;
+    transform:translate(-50%, -50%) scale(1);
+  }
+
+  #stageCardTitle {
+    color:#ffffff;
+    font-size:clamp(22px, 5vw, 34px);
+    font-weight:1000;
+    letter-spacing:1px;
+    margin-bottom:6px;
+    text-shadow:0 0 12px rgba(0,245,255,.72);
+  }
+
+  #stageCardText {
+    color:#dffcff;
+    font-size:clamp(14px, 3.2vw, 19px);
+    line-height:1.4;
+    margin-bottom:10px;
+  }
+
+  #stageCardNext {
+    color:#8dff3f;
+    font-size:clamp(13px, 3vw, 17px);
+    font-weight:900;
+    letter-spacing:.4px;
+  }
+
+    #bossWarning {
     position:fixed;
     left:50%;
     top:34%;
@@ -584,14 +689,24 @@ window.addEventListener("error", function(e) {
   </div>
 
   <div id="center">
-    <h1>TRON Math<br>Gate Racer v7</h1>
+    <h1>TRON Math<br>Gate Racer v20</h1>
     <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon TRON finish portal.</p><p>The counter shows gates left to the next boss. Default: 12 gates to Boss 1.</p>
     <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
-    <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, 5× max speed, boss gate counter, shooting sounds, acceleration sounds, boss ships, and a neon TRON finish line.</p>
+    <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, 5× max speed, boss gate counter, softer acceleration sound, shooting sounds, unique boss ships, and a neon TRON finish line.</p>
+    <div class="stageList">
+      <div class="stageItem"><b>Stage 1 Objective</b><span>Clear ×2, ×3 and ×4. Smash 4 correct gates in each table, then defeat Boss 1.</span></div>
+      <div class="stageItem"><b>Stage 2 Objective</b><span>Clear ×5, ×6, ×7 and ×8. Then defeat Boss 2.</span></div>
+      <div class="stageItem"><b>Final Stage Objective</b><span>Clear ×9 to ×12, defeat the Final Boss, then cross the TRON finish portal.</span></div>
+    </div>
     <div class="row">
-      <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame()">Start Race</button>
+      <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame(false)">Start New Race</button>
       <button id="teacherBtn" class="bigBtn" onclick="var t=document.getElementById('teacher'); if(t) t.classList.toggle('open');">Teacher Mode</button>
     </div>
+    <div id="resumeWrap" class="saveRow">
+      <button id="resumeBtn" class="bigBtn smallBtn" onclick="if(window.startGame) window.startGame(true)">Resume Saved Checkpoint</button>
+      <button id="clearSaveBtn" class="bigBtn smallBtn" onclick="if(window.clearRaceSave) window.clearRaceSave()">Clear Saved Progress</button>
+    </div>
+    <div id="saveNote">After every boss defeat, a checkpoint is saved on this device.</div>
     <div id="teacher">
       <div class="grid">
         <label>Start table
@@ -611,7 +726,7 @@ window.addEventListener("error", function(e) {
           </select>
         </label>
         <label>Correct gates per table
-          <input id="needCorrect" type="number" min="3" max="12" value="5">
+          <input id="needCorrect" type="number" min="3" max="12" value="4">
         </label>
         <label>Race speed
           <select id="speedChoice">
@@ -626,6 +741,7 @@ window.addEventListener("error", function(e) {
   </div>
 
   <div id="toast"></div>
+  <div id="stageCard"><div id="stageCardTitle"></div><div id="stageCardText"></div><div id="stageCardNext"></div></div>
   <div id="bossWarning"></div>
   <div id="bossHpBar"><div id="bossHpText">BOSS HP</div><div id="bossHpTrack"><div id="bossHpFill"></div></div></div>
   <div id="answerFeedback"></div>
@@ -707,6 +823,106 @@ const hud = {
 };
 
 const audio = createAudio();
+const SAVE_KEY = "tron_math_gate_racer_v20_save";
+let stageCardTimer = null;
+
+
+
+function getStageProgressInfo() {
+  if (!state.boss1Done) {
+    return {
+      stage: 1,
+      title: "Stage 1",
+      objective: "Clear ×2, ×3 and ×4, then defeat Boss 1.",
+      accomplished: "You cleared ×2, ×3 and ×4 and defeated Boss 1."
+    };
+  }
+
+  if (!state.boss2Done && state.finalTable >= 8) {
+    return {
+      stage: 2,
+      title: "Stage 2",
+      objective: "Clear ×5, ×6, ×7 and ×8, then defeat Boss 2.",
+      accomplished: "You cleared ×5, ×6, ×7 and ×8 and defeated Boss 2."
+    };
+  }
+
+  return {
+    stage: 3,
+    title: "Final Stage",
+    objective: `Clear ×9 to ×${state.finalTable}, defeat the Final Boss, then cross the finish portal.`,
+    accomplished: `You defeated the Final Boss. Cross the finish portal to escape the TRON grid.`
+  };
+}
+
+function showStageCard(title, text, nextLine = "") {
+  const card = $("stageCard");
+  if (!card) return;
+  $("stageCardTitle").textContent = title;
+  $("stageCardText").textContent = text;
+  $("stageCardNext").textContent = nextLine || "";
+  card.classList.add("show");
+  clearTimeout(stageCardTimer);
+  stageCardTimer = setTimeout(() => card.classList.remove("show"), 3200);
+}
+
+function saveRaceCheckpoint(extra = {}) {
+  try {
+    const payload = {
+      version: 20,
+      nextTable: state.table,
+      finalTable: state.finalTable,
+      needCorrect: state.needCorrect,
+      baseSpeed: state.baseSpeed,
+      boss1Done: state.boss1Done,
+      boss2Done: state.boss2Done,
+      finalBossStarted: state.finalBossStarted,
+      savedAt: Date.now(),
+      ...extra
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    refreshResumeUi();
+  } catch (err) {
+    console.warn("Could not save checkpoint", err);
+  }
+}
+
+function getSavedRace() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    console.warn("Could not parse saved checkpoint", err);
+    return null;
+  }
+}
+
+function clearRaceSave() {
+  try {
+    localStorage.removeItem(SAVE_KEY);
+  } catch (err) {
+    console.warn("Could not clear checkpoint", err);
+  }
+  refreshResumeUi();
+  toast("Saved progress cleared.");
+}
+window.clearRaceSave = clearRaceSave;
+
+function refreshResumeUi() {
+  const wrap = $("resumeWrap");
+  const note = $("saveNote");
+  const saved = getSavedRace();
+  if (!wrap || !note) return;
+  if (saved) {
+    wrap.classList.add("show");
+    const stageLabel = saved.stageLabel || `Resume from ×${saved.nextTable}`;
+    note.textContent = `Saved checkpoint found on this device: ${stageLabel}.`;
+  } else {
+    wrap.classList.remove("show");
+    note.textContent = "After every boss defeat, a checkpoint is saved on this device.";
+  }
+}
 
 
 let booted = false;
@@ -730,6 +946,7 @@ function bootGame() {
   }
 
   booted = true;
+  refreshResumeUi();
   init();
   animate();
 }
@@ -773,11 +990,13 @@ function init() {
   window.addEventListener("keydown", keyDown);
   window.addEventListener("keyup", keyUp);
 
-  $("startBtn").addEventListener("click", startGame);
+  $("startBtn").addEventListener("click", () => startGame(false));
   $("teacherBtn").addEventListener("click", () => {
     audio.tap();
     $("teacher").classList.toggle("open");
   });
+  const resumeBtn = $("resumeBtn"); if (resumeBtn) resumeBtn.addEventListener("click", () => startGame(true));
+  const clearSaveBtn = $("clearSaveBtn"); if (clearSaveBtn) clearSaveBtn.addEventListener("click", clearRaceSave);
   $("pauseBtn").addEventListener("click", togglePause);
   $("soundBtn").addEventListener("click", () => {
     muted = !muted;
@@ -798,18 +1017,24 @@ function updateThrottleHud() {
   hud.boost.textContent = `${pct}%`;
 }
 
-function startGame() {
+function startGame(useSaved = false) {
   window.__tronStarted = true;
   audio.tap();
 
   let s = parseInt($("startTable").value, 10);
   let f = parseInt($("finalTable").value, 10);
+  let saved = useSaved ? getSavedRace() : null;
+
+  if (saved) {
+    s = parseInt(saved.nextTable, 10) || s;
+    f = parseInt(saved.finalTable, 10) || f;
+  }
   if (f < s) [s, f] = [f, s];
 
   state.table = s;
   state.finalTable = f;
-  state.needCorrect = Math.max(3, Math.min(12, parseInt($("needCorrect").value, 10) || 5));
-  state.baseSpeed = parseFloat($("speedChoice").value) || 7.2;
+  state.needCorrect = saved ? (parseInt(saved.needCorrect, 10) || 4) : Math.max(3, Math.min(12, parseInt($("needCorrect").value, 10) || 4));
+  state.baseSpeed = saved ? (parseFloat(saved.baseSpeed) || 7.2) : (parseFloat($("speedChoice").value) || 7.2);
   state.speed = state.baseSpeed;
   state.boost = 0;
   state.boostCharges = 1;
@@ -825,9 +1050,9 @@ function startGame() {
   state.gameOver = false;
   state.boss = null;
   state.bossPendingAdvance = false;
-  state.boss1Done = false;
-  state.boss2Done = false;
-  state.finalBossStarted = false;
+  state.boss1Done = saved ? !!saved.boss1Done : false;
+  state.boss2Done = saved ? !!saved.boss2Done : false;
+  state.finalBossStarted = saved ? !!saved.finalBossStarted : false;
   state.finishLine = null;
   state.boostPad = null;
 
@@ -856,7 +1081,14 @@ function startGame() {
   $("controls").classList.remove("hidden");
 
   updateHud();
-  toast("Mission start. Bash through the correct numbered gate.");
+  const stageInfo = getStageProgressInfo();
+  if (saved) {
+    toast(`Checkpoint loaded. ${stageInfo.title}: ${stageInfo.objective}`);
+    showStageCard("Checkpoint Loaded", `Resuming at ×${state.table}.`, `${stageInfo.title} Objective: ${stageInfo.objective}`);
+  } else {
+    toast("Mission start. Bash through the correct numbered gate.");
+    showStageCard(stageInfo.title, stageInfo.objective, "Defeat the boss at the end of this stage.");
+  }
   audio.boost();
 }
 
@@ -1281,8 +1513,10 @@ function startBoss() {
   if (bossType === "FINAL BOSS") state.finalBossStarted = true;
 
   const hp = bossType === "FINAL BOSS" ? 4 : 3;
-  const group = makeBossShip();
-  group.scale.set(1.8, 1.8, 1.8);
+  const group = makeBossShip(bossType);
+  if (bossType === "BOSS 1") group.scale.set(1.55, 1.55, 1.55);
+  else if (bossType === "BOSS 2") group.scale.set(1.8, 1.8, 1.8);
+  else group.scale.set(2.15, 2.15, 2.15);
 
   const startZ = -58;
   group.position.set(curveAt(startZ), 5.6, startZ);
@@ -1300,68 +1534,282 @@ function startBoss() {
   };
 
   showBossWarning(bossType);
-  toast(`${bossType} approaching! Answer correctly, then shoot the mothership.`);
+  toast(`${bossType} approaching! Each boss has a different design. Answer correctly, then shoot the mothership.`);
   audio.boss();
   updateBossHpBar();
 }
 
-function makeBossShip() {
+
+function makeBossShip(bossType = "BOSS 1") {
   const group = new THREE.Group();
 
-  const bodyMat = new THREE.MeshStandardMaterial({
-    color: 0x181021,
+  if (bossType === "BOSS 1") {
+    // Scout Mothership: slim, sleek, ringed, lighter colors
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x102038,
+      emissive: 0x00f5ff,
+      emissiveIntensity: .65,
+      metalness: .72,
+      roughness: .20
+    });
+    const magentaMat = new THREE.MeshBasicMaterial({ color: 0xff2bd6, transparent: true, opacity: .90 });
+    const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .82 });
+
+    const core = new THREE.Mesh(new THREE.SphereGeometry(1.7, 28, 16), bodyMat);
+    core.scale.set(1.75, .48, 1.15);
+    group.add(core);
+
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(.85, 20, 12), new THREE.MeshStandardMaterial({
+      color: 0x1b3b5d,
+      emissive: 0x00f5ff,
+      emissiveIntensity: .42,
+      metalness: .62,
+      roughness: .18
+    }));
+    dome.scale.set(1.25, .58, 1.0);
+    dome.position.y = .36;
+    group.add(dome);
+
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.6, .08, 10, 64), cyanMat);
+    ring.rotation.x = Math.PI / 2;
+    group.add(ring);
+
+    const wingMat = new THREE.MeshStandardMaterial({
+      color: 0x0a1633,
+      emissive: 0xff2bd6,
+      emissiveIntensity: .38,
+      metalness: .7,
+      roughness: .20
+    });
+
+    const wingL = new THREE.Mesh(new THREE.BoxGeometry(2.4, .18, .9), wingMat);
+    wingL.position.set(-2.0, -.05, 0);
+    wingL.rotation.z = .22;
+    const wingR = wingL.clone();
+    wingR.position.x = 2.0;
+    wingR.rotation.z = -.22;
+    group.add(wingL, wingR);
+
+    const tailL = new THREE.Mesh(new THREE.BoxGeometry(.22, .75, .22), magentaMat);
+    tailL.position.set(-1.25, -.4, .1);
+    const tailR = tailL.clone();
+    tailR.position.x = 1.25;
+    group.add(tailL, tailR);
+
+    const shield = new THREE.Mesh(
+      new THREE.SphereGeometry(3.2, 32, 16),
+      new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .18, wireframe: true })
+    );
+    shield.userData.isBossShield = true;
+    group.add(shield);
+
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffe66d });
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(.15, 14, 8), eyeMat);
+    eyeL.position.set(-.55, .18, -1.25);
+    const eyeR = eyeL.clone();
+    eyeR.position.x = .55;
+    group.add(eyeL, eyeR);
+
+    const label = makeTextSprite("BOSS 1", 0x00f5ff, "label");
+    label.position.set(0, 2.15, .15);
+    label.scale.set(4.2, .90, 1);
+    group.add(label);
+
+    const light = new THREE.PointLight(0x00f5ff, 5.2, 26);
+    light.position.y = .6;
+    group.add(light);
+
+    return group;
+  }
+
+  if (bossType === "BOSS 2") {
+    // Twin Wing Destroyer: wider, heavier, side cannons, red shield
+    const hullMat = new THREE.MeshStandardMaterial({
+      color: 0x190f28,
+      emissive: 0xff2bd6,
+      emissiveIntensity: .58,
+      metalness: .82,
+      roughness: .18
+    });
+    const redMat = new THREE.MeshBasicMaterial({ color: 0xff3f5f, transparent: true, opacity: .92 });
+    const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .86 });
+
+    const hull = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 2.0, 5.0, 8, 1, false), hullMat);
+    hull.rotation.z = Math.PI / 2;
+    hull.scale.set(1.0, .58, 1.0);
+    group.add(hull);
+
+    const bridge = new THREE.Mesh(new THREE.SphereGeometry(1.0, 20, 12), new THREE.MeshStandardMaterial({
+      color: 0x202748,
+      emissive: 0x00f5ff,
+      emissiveIntensity: .35,
+      metalness: .64,
+      roughness: .20
+    }));
+    bridge.scale.set(1.2, .45, .9);
+    bridge.position.y = .48;
+    group.add(bridge);
+
+    const wingMat = new THREE.MeshStandardMaterial({
+      color: 0x0b1a35,
+      emissive: 0xff3f5f,
+      emissiveIntensity: .34,
+      metalness: .72,
+      roughness: .18
+    });
+
+    const wingL = new THREE.Mesh(new THREE.BoxGeometry(4.3, .24, 1.2), wingMat);
+    wingL.position.set(-3.05, -.1, 0);
+    wingL.rotation.z = .08;
+    const wingR = wingL.clone();
+    wingR.position.x = 3.05;
+    wingR.rotation.z = -.08;
+    group.add(wingL, wingR);
+
+    const cannonMat = new THREE.MeshStandardMaterial({
+      color: 0x101010,
+      emissive: 0xff3f5f,
+      emissiveIntensity: .48,
+      metalness: .88,
+      roughness: .12
+    });
+    const cannonL = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, 1.2, 14), cannonMat);
+    cannonL.rotation.x = Math.PI / 2;
+    cannonL.position.set(-4.6, -.05, -0.18);
+    const cannonR = cannonL.clone();
+    cannonR.position.x = 4.6;
+    group.add(cannonL, cannonR);
+
+    const bladeL = new THREE.Mesh(new THREE.BoxGeometry(.18, 1.35, .22), redMat);
+    bladeL.position.set(-2.25, .22, 0);
+    bladeL.rotation.z = .36;
+    const bladeR = bladeL.clone();
+    bladeR.position.x = 2.25;
+    bladeR.rotation.z = -.36;
+    group.add(bladeL, bladeR);
+
+    const shield = new THREE.Mesh(
+      new THREE.SphereGeometry(4.15, 32, 16),
+      new THREE.MeshBasicMaterial({ color: 0xff3f5f, transparent: true, opacity: .20, wireframe: true })
+    );
+    shield.userData.isBossShield = true;
+    group.add(shield);
+
+    const frontBar = new THREE.Mesh(new THREE.BoxGeometry(1.8, .14, .14), cyanMat);
+    frontBar.position.set(0, .12, -1.85);
+    group.add(frontBar);
+
+    const label = makeTextSprite("BOSS 2", 0xff3f5f, "label");
+    label.position.set(0, 2.5, .15);
+    label.scale.set(4.6, .96, 1);
+    group.add(label);
+
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffe66d });
+    for (const x of [-.85, 0, .85]) {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(.16, 14, 8), eyeMat);
+      eye.position.set(x, .18, -1.55);
+      group.add(eye);
+    }
+
+    const light = new THREE.PointLight(0xff3f5f, 5.8, 30);
+    light.position.y = .65;
+    group.add(light);
+
+    return group;
+  }
+
+  // Final Boss: giant dark mothership with two rotating shield rings and spikes
+  const hullMat = new THREE.MeshStandardMaterial({
+    color: 0x100818,
     emissive: 0xff2bd6,
     emissiveIntensity: .70,
-    metalness: .78,
-    roughness: .18
+    metalness: .84,
+    roughness: .16
   });
-  const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .86 });
+  const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .88 });
+  const redMat = new THREE.MeshBasicMaterial({ color: 0xff3f5f, transparent: true, opacity: .88 });
 
-  const core = new THREE.Mesh(new THREE.SphereGeometry(1.7, 32, 16), bodyMat);
-  core.scale.set(1.9, .55, 1.2);
-  group.add(core);
+  const mainHull = new THREE.Mesh(new THREE.SphereGeometry(2.0, 32, 16), hullMat);
+  mainHull.scale.set(2.3, .72, 1.5);
+  group.add(mainHull);
 
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(2.75, .08, 10, 64), cyanMat);
-  ring.rotation.x = Math.PI / 2;
-  group.add(ring);
+  const upperHull = new THREE.Mesh(new THREE.SphereGeometry(1.25, 24, 14), new THREE.MeshStandardMaterial({
+    color: 0x24183a,
+    emissive: 0x00f5ff,
+    emissiveIntensity: .30,
+    metalness: .70,
+    roughness: .18
+  }));
+  upperHull.scale.set(1.55, .55, 1.18);
+  upperHull.position.y = .68;
+  group.add(upperHull);
+
+  const lowerHull = new THREE.Mesh(new THREE.SphereGeometry(1.15, 20, 12), new THREE.MeshStandardMaterial({
+    color: 0x180b1a,
+    emissive: 0xff3f5f,
+    emissiveIntensity: .26,
+    metalness: .68,
+    roughness: .18
+  }));
+  lowerHull.scale.set(1.8, .33, 1.2);
+  lowerHull.position.y = -.55;
+  group.add(lowerHull);
 
   const wingMat = new THREE.MeshStandardMaterial({
-    color: 0x0a1d3d,
+    color: 0x0b1028,
     emissive: 0x00f5ff,
-    emissiveIntensity: .45,
-    metalness: .7,
-    roughness: .18
+    emissiveIntensity: .28,
+    metalness: .82,
+    roughness: .16
   });
 
-  const wingL = new THREE.Mesh(new THREE.BoxGeometry(3.4, .22, 1.1), wingMat);
-  wingL.position.x = -2.5;
-  wingL.rotation.z = .22;
+  const wingL = new THREE.Mesh(new THREE.BoxGeometry(4.1, .24, 1.25), wingMat);
+  wingL.position.set(-3.45, -.1, 0);
+  wingL.rotation.z = .18;
   const wingR = wingL.clone();
-  wingR.position.x = 2.5;
-  wingR.rotation.z = -.22;
+  wingR.position.x = 3.45;
+  wingR.rotation.z = -.18;
   group.add(wingL, wingR);
 
+  const spikeGeo = new THREE.ConeGeometry(.22, 1.0, 8);
+  for (const x of [-1.8, -.9, 0, .9, 1.8]) {
+    const spike = new THREE.Mesh(spikeGeo, redMat);
+    spike.position.set(x, .95, .2);
+    group.add(spike);
+  }
+
+  const ringOuter = new THREE.Mesh(new THREE.TorusGeometry(3.55, .08, 10, 72), cyanMat);
+  ringOuter.rotation.x = Math.PI / 2;
+  ringOuter.userData.spinSpeed = .015;
+  group.add(ringOuter);
+
+  const ringInner = new THREE.Mesh(new THREE.TorusGeometry(2.6, .08, 10, 64), redMat);
+  ringInner.rotation.x = Math.PI / 2;
+  ringInner.rotation.z = .48;
+  ringInner.userData.spinSpeed = -.025;
+  group.add(ringInner);
+
   const shield = new THREE.Mesh(
-    new THREE.SphereGeometry(3.3, 32, 16),
-    new THREE.MeshBasicMaterial({ color: 0x00f5ff, transparent: true, opacity: .18, wireframe: true })
+    new THREE.SphereGeometry(4.55, 32, 16),
+    new THREE.MeshBasicMaterial({ color: 0xff2bd6, transparent: true, opacity: .22, wireframe: true })
   );
   shield.userData.isBossShield = true;
   group.add(shield);
 
   const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff3f5f });
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(.18, 16, 8), eyeMat);
-  eyeL.position.set(-.7, .42, -1.25);
-  const eyeR = eyeL.clone();
-  eyeR.position.x = .7;
-  group.add(eyeL, eyeR);
+  for (const x of [-1.1, -.35, .35, 1.1]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(.17, 14, 8), eyeMat);
+    eye.position.set(x, .3, -2.05);
+    group.add(eye);
+  }
 
-  const label = makeTextSprite("BOSS", 0xff3f5f, "label");
-  label.position.set(0, 2.4, .15);
-  label.scale.set(4.4, .92, 1);
+  const label = makeTextSprite("FINAL BOSS", 0xffd45a, "label");
+  label.position.set(0, 3.0, .15);
+  label.scale.set(5.3, 1.05, 1);
   group.add(label);
 
-  const light = new THREE.PointLight(0xff2bd6, 6.5, 34);
-  light.position.y = .6;
+  const light = new THREE.PointLight(0xff2bd6, 7.2, 38);
+  light.position.y = .85;
   group.add(light);
 
   return group;
@@ -1390,6 +1838,12 @@ function updateBoss(dt) {
   boss.group.position.y = 5.6 + Math.sin(performance.now() * .0022) * .35;
   boss.group.rotation.y += dt * .55;
   boss.group.rotation.z = Math.sin(performance.now() * .0012) * .08;
+
+  boss.group.children.forEach(child => {
+    if (child.userData && child.userData.spinSpeed) {
+      child.rotation.z += child.userData.spinSpeed;
+    }
+  });
 
   if (boss.openTimer > 0) {
     boss.openTimer -= dt;
@@ -1789,13 +2243,31 @@ function defeatBoss() {
   state.boss = null;
   hideBossHpBar();
 
-  if (defeatedType === "BOSS 1") state.boss1Done = true;
-  if (defeatedType === "BOSS 2") state.boss2Done = true;
+  let accomplishedText = "";
+  let nextObjective = "";
+
+  if (defeatedType === "BOSS 1") {
+    state.boss1Done = true;
+    accomplishedText = "You cleared ×2, ×3 and ×4 and defeated Boss 1.";
+    nextObjective = "Stage 2 Objective: Clear ×5, ×6, ×7 and ×8, then defeat Boss 2.";
+  }
+  if (defeatedType === "BOSS 2") {
+    state.boss2Done = true;
+    accomplishedText = "You cleared ×5, ×6, ×7 and ×8 and defeated Boss 2.";
+    nextObjective = `Final Stage Objective: Clear ×9 to ×${state.finalTable}, defeat the Final Boss, then cross the finish portal.`;
+  }
 
   state.score += final ? 1000 : 500;
   audio.win();
 
   if (final) {
+    accomplishedText = "You defeated the Final Boss. One last job remains.";
+    nextObjective = "Cross the TRON finish portal to complete the mission.";
+    saveRaceCheckpoint({
+      stageLabel: "Final Boss defeated",
+      completedFinalBoss: true
+    });
+    showStageCard("Final Boss Defeated!", accomplishedText, nextObjective);
     state.finishLine = spawnFinishLine(-125);
     state.waitingForNextGate = 0;
     toast("Final boss defeated! Cross the TRON finish line!");
@@ -1805,8 +2277,16 @@ function defeatBoss() {
     state.ammo = Math.min(15, state.ammo + 4);
     state.boostCharges = Math.min(7, state.boostCharges + 2);
     state.waitingForNextGate = .9;
-    toast(`Boss defeated! Checkpoint reached — entering ×${state.table}.`);
+
+    const stageLabel = defeatedType === "BOSS 1" ? "Stage 1 complete" : "Stage 2 complete";
+    saveRaceCheckpoint({
+      stageLabel,
+      accomplishment: accomplishedText
+    });
+    showStageCard(stageLabel, accomplishedText, nextObjective);
+    toast(`Boss defeated! Checkpoint saved on this device. Entering ×${state.table}.`);
   }
+  refreshResumeUi();
 }
 
 function maybeSpawnAlien() {
@@ -1957,7 +2437,8 @@ function updateHud() {
   if (state.boss) {
     hud.objective.textContent = `Boss battle: answer correctly to open shield, then shoot. Boss HP ${state.boss.hp}/${state.boss.maxHp}`;
   } else {
-    hud.objective.textContent = `Objective: ×${state.table} stage — correct gates ${state.correctInTable}/${state.needCorrect}. Counter shows gates to next boss. Final endpoint: ×${state.finalTable} portal.`;
+    const stageInfo = getStageProgressInfo();
+    hud.objective.textContent = `Objective: ${stageInfo.title} — ${stageInfo.objective} Progress: ${state.correctInTable}/${state.needCorrect} in ×${state.table}.`;
   }
 }
 
@@ -2174,6 +2655,7 @@ function removeFinishLine() {
 }
 
 function win() {
+  clearRaceSave();
   const speedLines = $("speedLines");
   if (speedLines) speedLines.classList.remove("on");
   state.gameOver = true;
@@ -2181,6 +2663,7 @@ function win() {
   removeBoss();
   removeFinishLine();
   removeBoostPad();
+  refreshResumeUi();
   $("center").classList.remove("hidden");
   $("center").innerHTML = `
     <h1>Mission Complete!</h1>
@@ -2335,7 +2818,7 @@ function createAudio() {
     correct: () => { sweep(300, 1250, .25, .055); setTimeout(() => beep(1450, .08, "triangle", .04), 95); },
     wrong: () => { beep(130, .15, "sawtooth", .065); setTimeout(() => beep(85, .16, "sawtooth", .055), 95); },
     shoot: () => sweep(980, 220, .14, .065),
-    accel: (power=.7) => { sweep(180 + power*90, 320 + power*180, .10, .028 + power*.012); },
+    accel: (power=.7) => { sweep(180 + power*90, 320 + power*180, .10, (.028 + power*.012) * .25); },
     boom: () => { beep(90, .17, "sawtooth", .075); setTimeout(() => beep(220, .08, "square", .04), 75); },
     boost: () => sweep(200, 1500, .30, .05),
     boss: () => { sweep(120, 520, .42, .065); setTimeout(() => beep(88, .22, "sawtooth", .06), 180); },
@@ -2361,4 +2844,4 @@ if (document.readyState !== "loading") {
 }
 </script>
 </body>
-</html>
+  </html>
