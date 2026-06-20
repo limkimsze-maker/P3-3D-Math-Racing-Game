@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v9</title>
+<title>TRON Math Gate Racer v10</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -288,6 +288,30 @@
     transform:translateX(-50%) translateY(-8px);
   }
 
+
+  #speedLines {
+    position:fixed;
+    inset:0;
+    z-index:4;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity .15s ease;
+    background:
+      repeating-linear-gradient(105deg, transparent 0 28px, rgba(0,245,255,.12) 29px 31px, transparent 32px 52px),
+      repeating-linear-gradient(75deg, transparent 0 34px, rgba(255,43,214,.10) 35px 37px, transparent 38px 60px);
+    mix-blend-mode:screen;
+  }
+
+  #speedLines.on {
+    opacity:.9;
+    animation:speedRush .25s linear infinite;
+  }
+
+  @keyframes speedRush {
+    from { transform:translateY(0) scale(1); }
+    to { transform:translateY(42px) scale(1.03); }
+  }
+
   #flash {
     position:fixed;
     inset:0;
@@ -333,7 +357,7 @@ window.addEventListener("error", function(e) {
     <div id="questionBox">
       <div id="question">2 × 4 = ?</div>
       <div id="objective">Objective: clear ×2 to ×12 and escape through the final TRON portal.</div>
-      <div id="instruction">Bash through the numbered 3D gate. Use 🚀 Boost and ⚡ Shoot.</div>
+      <div id="instruction">Bash through the numbered 3D gate. Use 🚀 Hyper Boost and ⚡ Shoot.</div>
     </div>
   </div>
 
@@ -357,7 +381,7 @@ window.addEventListener("error", function(e) {
     <h1>TRON Math<br>Gate Racer v7</h1>
     <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then escape through the final TRON portal.</p>
     <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
-    <p>New challenges: bends, alien blockers, shield gates, boss battles, boost acceleration, and shooting.</p>
+    <p>New challenges: stronger bends, alien blockers, shield gates, boss battles, hyper boost acceleration, and shooting.</p>
     <div class="row">
       <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame()">Start Race</button>
       <button id="teacherBtn" class="bigBtn" onclick="var t=document.getElementById('teacher'); if(t) t.classList.toggle('open');">Teacher Mode</button>
@@ -385,9 +409,9 @@ window.addEventListener("error", function(e) {
         </label>
         <label>Race speed
           <select id="speedChoice">
-            <option value="10.5">Steady</option>
-            <option value="13.2" selected>Fast</option>
-            <option value="16">Hyper</option>
+            <option value="12.5">Fast</option>
+            <option value="15" selected>Hyper</option>
+            <option value="18">Extreme</option>
           </select>
         </label>
       </div>
@@ -396,6 +420,7 @@ window.addEventListener("error", function(e) {
   </div>
 
   <div id="toast"></div>
+  <div id="speedLines"></div>
   <div id="flash"></div>
 </div>
 
@@ -420,8 +445,8 @@ const ROAD_Z_NEAR = 24;
 const ROAD_Z_FAR = -270;
 
 const state = {
-  speed: 13.2,
-  baseSpeed: 13.2,
+  speed: 15,
+  baseSpeed: 15,
   boost: 0,
   boostCharges: 0,
   boostTimer: 0,
@@ -555,7 +580,7 @@ function startGame() {
   state.table = s;
   state.finalTable = f;
   state.needCorrect = Math.max(3, Math.min(12, parseInt($("needCorrect").value, 10) || 5));
-  state.baseSpeed = parseFloat($("speedChoice").value) || 13.2;
+  state.baseSpeed = parseFloat($("speedChoice").value) || 15;
   state.speed = state.baseSpeed;
   state.boost = 0;
   state.boostCharges = 1;
@@ -577,7 +602,7 @@ function startGame() {
 
   clearObjects();
   makeQuestion();
-  spawnGateSet(-100);
+  spawnGateSet(-125);
 
   running = true;
   paused = false;
@@ -754,16 +779,19 @@ function buildStars() {
 }
 
 function curveStrength() {
-  if (state.table <= 3) return .5;
-  if (state.table <= 5) return 1.25;
-  if (state.table <= 8) return 2.3;
-  return 3.25;
+  // Strong visible bends from the start.
+  // Controls remain simple: left lane, middle lane, right lane.
+  if (state.table <= 3) return 2.6;
+  if (state.table <= 5) return 3.4;
+  if (state.table <= 8) return 4.3;
+  return 5.2;
 }
 
 function curveAt(z) {
   const amp = curveStrength();
-  return Math.sin(distance * .030 + z * .032) * amp +
-         Math.sin(distance * .016 + z * .018) * amp * .38;
+  // Two sine waves give a flowing S-bend highway instead of a flat straight road.
+  return Math.sin(distance * .045 + z * .045) * amp +
+         Math.sin(distance * .020 + z * .026) * amp * .45;
 }
 
 function updateRoad(scroll) {
@@ -1084,11 +1112,12 @@ function update(dt) {
 
   if (state.boostTimer > 0) {
     state.boostTimer -= dt;
-    state.boost = Math.max(state.boost, 9);
+    state.boost = Math.max(state.boost, 34);
   }
 
   const speed = state.speed + state.boost;
-  const scroll = speed * dt * 1.05;
+  const boostSurge = state.boostTimer > 0 ? 1.35 : 1;
+  const scroll = speed * dt * 1.08 * boostSurge;
 
   updateRoad(scroll);
   updateGate(scroll, dt);
@@ -1102,12 +1131,14 @@ function update(dt) {
     state.waitingForNextGate -= dt;
     if (state.waitingForNextGate <= 0 && !state.gameOver) {
       makeQuestion();
-      spawnGateSet(-110);
+      spawnGateSet(-130);
     }
   }
 
   state.boost = Math.max(0, state.boost - 4.2 * dt);
   state.speed = THREE.MathUtils.lerp(state.speed, state.baseSpeed, .75 * dt);
+  const speedLines = $("speedLines");
+  if (speedLines) speedLines.classList.toggle("on", state.boostTimer > 0);
   updateHud();
 }
 
@@ -1201,8 +1232,8 @@ function correctAnswer() {
   state.score += 120 + state.streak * 22;
   state.ammo = Math.min(15, state.ammo + 1);
   state.boostCharges = Math.min(6, state.boostCharges + (state.streak % 3 === 0 ? 2 : 1));
-  state.boost = Math.min(18, state.boost + 5.2);
-  state.speed = Math.min(state.baseSpeed + 6.5, state.speed + 1.2);
+  state.boost = Math.min(24, state.boost + 7.2);
+  state.speed = Math.min(state.baseSpeed + 8, state.speed + 1.4);
   audio.correct();
 
   if (state.boss) {
@@ -1216,7 +1247,7 @@ function correctAnswer() {
   if (state.streak > 0 && state.streak % 5 === 0) {
     state.boostCharges = Math.min(7, state.boostCharges + 2);
     state.ammo = Math.min(15, state.ammo + 3);
-    state.boost = Math.min(22, state.boost + 6);
+    state.boost = Math.min(28, state.boost + 8);
     toast("Overdrive streak! Extra ammo and boost!");
     audio.boost();
   } else {
@@ -1274,11 +1305,11 @@ function useBoost() {
   }
 
   state.boostCharges--;
-  state.boostTimer = 1.35;
-  state.boost = Math.max(state.boost, 14);
+  state.boostTimer = 2.15;
+  state.boost = Math.max(state.boost, 34);
   flash(0x8dff3f);
   audio.boost();
-  toast("BOOST!");
+  toast("HYPER BOOST!");
   updateHud();
 }
 
@@ -1543,9 +1574,12 @@ function render(dt) {
   if (player) {
     const playerTargetX = curveAt(PLAYER_Z) + LANE_X[targetLane];
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, playerTargetX * .32, 4 * dt);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 5.2 + state.boost * .045, 3 * dt);
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, 15.0 + state.boost * .03, 3 * dt);
-    camera.lookAt(curveAt(-30) * .55, 1.0, -28);
+    const surge = state.boostTimer > 0 ? 1 : 0;
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 5.0 + state.boost * .055, 3.8 * dt);
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, 15.0 + state.boost * .055 + surge * 2.2, 3.8 * dt);
+    camera.fov = THREE.MathUtils.lerp(camera.fov, surge ? 82 : 70, 4.2 * dt);
+    camera.updateProjectionMatrix();
+    camera.lookAt(curveAt(-34) * .62, 1.0, -30);
   }
   renderer.render(scene, camera);
 }
@@ -1560,7 +1594,7 @@ function updateHud() {
   if (state.boss) {
     hud.objective.textContent = `Boss battle: answer correctly to open shield, then shoot. Boss HP ${state.boss.hp}/${state.boss.maxHp}`;
   } else {
-    hud.objective.textContent = `Objective: ×${state.table} stage — correct gates ${state.correctInTable}/${state.needCorrect}. Final endpoint: ×${state.finalTable} portal.`;
+    hud.objective.textContent = `Objective: ×${state.table} stage — correct gates ${state.correctInTable}/${state.needCorrect}. Curved highway active. Final endpoint: ×${state.finalTable} portal.`;
   }
 }
 
@@ -1577,6 +1611,8 @@ function clearObjects() {
 }
 
 function win() {
+  const speedLines = $("speedLines");
+  if (speedLines) speedLines.classList.remove("on");
   state.gameOver = true;
   removeGateSet();
   removeBoss();
@@ -1591,6 +1627,8 @@ function win() {
 }
 
 function lose() {
+  const speedLines = $("speedLines");
+  if (speedLines) speedLines.classList.remove("on");
   state.gameOver = true;
   $("center").classList.remove("hidden");
   $("center").innerHTML = `
@@ -1742,4 +1780,4 @@ if (document.readyState !== "loading") {
 }
 </script>
 </body>
-  </html>
+</html>
