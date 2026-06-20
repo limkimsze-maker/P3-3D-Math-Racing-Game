@@ -313,14 +313,14 @@
     <div id="hud" class="hidden">
       <div class="hudBox"><span class="hudLabel">Speed</span><span id="speedHud">0</span></div>
       <div class="hudBox"><span class="hudLabel">Ammo</span><span id="ammoHud">0</span></div>
-      <div class="hudBox"><span class="hudLabel">Lives</span><span id="livesHud">3</span></div>
+      <div class="hudBox"><span class="hudLabel">Lives</span><span id="livesHud">5</span></div>
       <div class="hudBox"><span class="hudLabel">Score</span><span id="scoreHud">0</span></div>
       <div class="hudBox"><span class="hudLabel">Table</span><span id="tableHud">×2</span></div>
     </div>
 
     <div id="questionCard" class="hidden">
       <div id="questionText">2 × 4 = ?</div>
-      <div id="questionSub">Steer into the correct glowing gate to boost.</div>
+      <div id="questionSub">Look ahead, then steer into the correct glowing gate to boost.</div>
     </div>
 
     <button id="pauseBtn" class="neonBtn smallBtn hidden">Pause</button>
@@ -342,7 +342,7 @@
 
     <div id="centerMsg">
       <h1>TRON Math<br>Hyper‑Race</h1>
-      <p>Race alien spaceships on a neon grid. Steer into the correct answer gate to accelerate.</p>
+      <p>Race alien spaceships on a neon grid. Steer into the correct answer gate to accelerate. The first gate now appears farther away.</p>
       <p>Correct answers give speed, score, and laser ammo. Shoot aliens with <b>Space</b> or the ⚡ button.</p>
       <div class="row">
         <button id="startBtn" class="neonBtn">Start Race</button>
@@ -401,23 +401,25 @@ const laneXs = [-5.2, 0, 5.2];
 
 const state = {
   score: 0,
-  lives: 3,
+  lives: 5,
   ammo: 3,
-  speed: 26,
-  baseSpeed: 26,
+  speed: 18,
+  baseSpeed: 18,
   boost: 0,
   streak: 0,
+  wrongCount: 0,
   table: 2,
   finalTable: 12,
   questionsPerTable: 5,
   correctThisTable: 0,
   answeredTotal: 0,
-  nextGateZ: -72,
-  nextAlienZ: -95,
-  nextOrbZ: -58,
+  nextGateZ: -150,
+  nextAlienZ: -210,
+  nextOrbZ: -105,
   bossActive: false,
   bossHp: 0,
   gameOver: false,
+  countdown: 0,
   speedMultiplier: 1
 };
 
@@ -567,12 +569,13 @@ function startGame() {
   state.finalTable = f;
   state.questionsPerTable = Math.max(3, Math.min(12, parseInt($("questionsPerTable").value, 10) || 5));
   state.speedMultiplier = parseFloat($("speedLevel").value) || 1;
-  state.speed = 26 * state.speedMultiplier;
+  state.speed = 18 * state.speedMultiplier;
   state.baseSpeed = state.speed;
 
   resetRaceValues();
   gameStarted = true;
   paused = false;
+  state.countdown = 2.2;
 
   $("centerMsg").classList.add("hidden");
   $("hud").classList.remove("hidden");
@@ -583,25 +586,27 @@ function startGame() {
 
   makeQuestion();
   clearRaceObjects();
-  toast("Race started! Enter the correct answer gate.");
+  toast("Get ready. First gate is farther away now.");
   sound.boost();
 }
 
 function resetRaceValues() {
   Object.assign(state, {
     score: 0,
-    lives: 3,
+    lives: 5,
     ammo: 3,
     boost: 0,
     streak: 0,
+    wrongCount: 0,
     correctThisTable: 0,
     answeredTotal: 0,
-    nextGateZ: -72,
-    nextAlienZ: -95,
-    nextOrbZ: -58,
+    nextGateZ: -150,
+    nextAlienZ: -210,
+    nextOrbZ: -105,
     bossActive: false,
     bossHp: 0,
-    gameOver: false
+    gameOver: false,
+    countdown: 0
   });
   shipLane = 0;
   targetX = 0;
@@ -778,7 +783,7 @@ function makeQuestion() {
   const options = shuffle([answer, ...Array.from(wrongs)]);
   currentQuestion = { a, b, answer, options };
   hud.question.textContent = `${a} × ${b} = ?`;
-  hud.sub.textContent = `Choose the correct gate. Streak: ${state.streak}`;
+  hud.sub.textContent = `Choose the correct gate. Tap left/right twice if the gate is far. Streak: ${state.streak}`;
 }
 
 function spawnGates() {
@@ -806,7 +811,7 @@ function spawnGates() {
 
   scene.add(group);
   gates.push({ group, z, correctLane, optionForLane, passed: false, question: {...currentQuestion} });
-  state.nextGateZ -= 42;
+  state.nextGateZ -= 70;
 }
 
 function makeAnswerGate(answer, correct, color) {
@@ -891,7 +896,7 @@ function spawnAlien() {
     color: group.userData.color
   });
 
-  state.nextAlienZ -= randFloat(32, 46);
+  state.nextAlienZ -= randFloat(62, 82);
 }
 
 function makeAlienShip() {
@@ -961,7 +966,7 @@ function spawnOrb() {
   mesh.userData.kind = Math.random() > .35 ? "ammo" : "shield";
   scene.add(mesh);
   orbs.push({ mesh, lane, z, kind: mesh.userData.kind });
-  state.nextOrbZ -= randFloat(44, 70);
+  state.nextOrbZ -= randFloat(70, 100);
 }
 
 function shoot() {
@@ -1008,6 +1013,13 @@ function animate() {
 }
 
 function update(dt) {
+  if (state.countdown > 0) {
+    state.countdown -= dt;
+    updatePlayer(dt);
+    updateHud();
+    return;
+  }
+
   if (gates.length < 4) spawnGates();
   if (aliens.length < 6) spawnAlien();
   if (orbs.length < 3) spawnOrb();
@@ -1024,7 +1036,7 @@ function update(dt) {
   updateParticles(dt);
   updateTrails(scroll, dt);
 
-  state.boost = Math.max(0, state.boost - 10.5 * dt);
+  state.boost = Math.max(0, state.boost - 7.0 * dt);
   state.speed = THREE.MathUtils.lerp(state.speed, state.baseSpeed, .35 * dt);
   updateHud();
 }
@@ -1089,7 +1101,7 @@ function correctGate() {
   state.answeredTotal++;
   state.ammo = Math.min(12, state.ammo + 1 + (state.streak % 3 === 0 ? 1 : 0));
   state.boost = Math.min(28, state.boost + 8 + state.streak * .45);
-  state.speed = Math.min(54 * state.speedMultiplier, state.speed + 1.2);
+  state.speed = Math.min(38 * state.speedMultiplier, state.speed + 0.8);
   flash("boost");
   sound.correct();
   createBurst(player.position.x, 1.1, player.position.z - 2, 0x00f5ff, 16);
@@ -1109,10 +1121,19 @@ function correctGate() {
 
 function wrongGate(chosen, answer) {
   state.streak = 0;
-  state.score = Math.max(0, state.score - 40);
-  state.speed = Math.max(16, state.speed - 5);
+  state.wrongCount++;
+  state.score = Math.max(0, state.score - 25);
+  state.speed = Math.max(13 * state.speedMultiplier, state.speed - 3);
   state.boost = 0;
-  loseLife(`Wrong gate. ${chosen} is not ${answer}.`);
+  flash("damage");
+  sound.wrong();
+
+  if (state.wrongCount % 2 === 0) {
+    loseLife(`Wrong gate. ${chosen} is not ${answer}. Shield lost.`);
+  } else {
+    toast(`Wrong gate. ${chosen} is not ${answer}. Try the next one!`);
+  }
+
   makeQuestion();
 }
 
