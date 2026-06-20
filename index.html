@@ -39,6 +39,7 @@
   }
 
   canvas {
+    pointer-events:none;
     display:block;
     width:100%;
     height:100%;
@@ -312,6 +313,14 @@
 </style>
 </head>
 <body>
+<script>
+window.addEventListener("error", function(e) {
+  var c = document.getElementById("center");
+  if (c && !window.__tronStarted) {
+    c.innerHTML = '<h1>Game Loading Error</h1><p>' + (e.message || 'Unknown error') + '</p><p>Please try opening the file again with internet access.</p><div class="row"><button class="bigBtn" onclick="location.reload()">Reload</button></div>';
+  }
+});
+</script>
 <div id="game">
   <div id="hud" class="hidden">
     <div id="stats">
@@ -350,8 +359,8 @@
     <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges.</p>
     <p>New challenges: bends, alien blockers, shield gates, boss battles, boost acceleration, and shooting.</p>
     <div class="row">
-      <button id="startBtn" class="bigBtn">Start Race</button>
-      <button id="teacherBtn" class="bigBtn">Teacher Mode</button>
+      <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame()">Start Race</button>
+      <button id="teacherBtn" class="bigBtn" onclick="var t=document.getElementById('teacher'); if(t) t.classList.toggle('open');">Teacher Mode</button>
     </div>
     <div id="teacher">
       <div class="grid">
@@ -390,8 +399,8 @@
   <div id="flash"></div>
 </div>
 
-<script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
 
 const $ = id => document.getElementById(id);
 
@@ -453,8 +462,32 @@ const hud = {
 
 const audio = createAudio();
 
-init();
-animate();
+
+let booted = false;
+window.addEventListener("DOMContentLoaded", bootGame);
+
+function bootGame() {
+  if (booted) return;
+
+  if (!window.THREE) {
+    const center = document.getElementById("center");
+    if (center) {
+      center.innerHTML = `
+        <h1>Loading 3D Engine...</h1>
+        <p>Please wait a moment. If this stays here, open the file with internet access because the 3D library needs to load.</p>
+        <div class="row"><button id="retryLoadBtn" class="bigBtn">Try Again</button></div>
+      `;
+      const retry = document.getElementById("retryLoadBtn");
+      if (retry) retry.onclick = () => location.reload();
+    }
+    return;
+  }
+
+  booted = true;
+  init();
+  animate();
+}
+
 
 function init() {
   scene = new THREE.Scene();
@@ -512,6 +545,7 @@ function init() {
 }
 
 function startGame() {
+  window.__tronStarted = true;
   audio.tap();
 
   let s = parseInt($("startTable").value, 10);
@@ -557,6 +591,8 @@ function startGame() {
   toast("Mission start. Bash through the correct numbered gate.");
   audio.boost();
 }
+
+window.startGame = startGame;
 
 function buildRoad() {
   roadGroup = new THREE.Group();
@@ -1697,6 +1733,10 @@ function shuffle(arr) {
   return a;
 }
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+if (document.readyState !== "loading") {
+  bootGame();
+}
 </script>
 </body>
-</html>
+  </html>
