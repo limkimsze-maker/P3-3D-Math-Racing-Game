@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v7</title>
+<title>TRON Math Gate Racer v9</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -519,9 +519,9 @@ function init() {
   pink.position.set(-10, 6, -20);
   scene.add(pink);
 
+  buildStars();
   buildRoad();
   buildPlayer();
-  buildStars();
 
   window.addEventListener("resize", resize);
   window.addEventListener("keydown", keyDown);
@@ -806,8 +806,10 @@ function updateRoad(scroll) {
     h.rotation.z = Math.sin(distance * .02 + h.userData.z) * .05;
   }
 
-  starPoints.position.z += scroll * .06;
-  if (starPoints.position.z > 20) starPoints.position.z = 0;
+  if (starPoints) {
+    starPoints.position.z += scroll * .06;
+    if (starPoints.position.z > 20) starPoints.position.z = 0;
+  }
 }
 
 function makeQuestion() {
@@ -1537,6 +1539,7 @@ function updateParticles(dt) {
 }
 
 function render(dt) {
+  if (!renderer || !scene || !camera) return;
   if (player) {
     const playerTargetX = curveAt(PLAYER_Z) + LANE_X[targetLane];
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, playerTargetX * .32, 4 * dt);
@@ -1739,4 +1742,4 @@ if (document.readyState !== "loading") {
 }
 </script>
 </body>
-</html>
+  </html>
