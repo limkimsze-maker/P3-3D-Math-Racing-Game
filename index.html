@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>TRON Math Gate Racer v21</title>
+<title>NEON Math Gate Racer</title>
 <style>
   :root {
     --cyan:#00f5ff;
@@ -666,8 +666,8 @@ window.addEventListener("error", function(e) {
     </div>
     <div id="questionBox">
       <div id="question">2 × 4 = ?</div>
-      <div id="objective">Objective: clear ×2 to ×12 and escape through the final TRON portal. Hold ACCEL to build speed up to 5×.</div>
-      <div id="instruction">TRON grid race: steer, hold ACCEL to build speed, use BRAKE to slow down, shoot, and bash through the correct gate.</div>
+      <div id="objective">Objective: clear ×2 to ×12 and escape through the final NEON portal. Hold ACCEL to build speed up to 5×.</div>
+      <div id="instruction">NEON grid race: steer, hold ACCEL to build speed, use BRAKE to slow down, shoot, and bash through the correct gate.</div>
     </div>
   </div>
 
@@ -691,14 +691,14 @@ window.addEventListener("error", function(e) {
   </div>
 
   <div id="center">
-    <h1>TRON Math<br>Gate Racer v20</h1>
-    <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon TRON finish portal.</p><p>The counter shows gates left to the next boss. Default: 12 gates to Boss 1.</p>
+    <h1>NEON Math<br>Gate Racer</h1>
+    <p><b>Objective:</b> clear multiplication tables from ×2 to ×12, defeat boss ships, then cross the neon finish portal.</p><p>The counter shows gates left to the next boss. Default: 12 gates to Boss 1.</p>
     <p>Bash through the correct numbered 3D gate. Correct gates give ammo and boost charges. No shield blocks on answer gates.</p>
-    <p>Inspired by arcade racers: clear lanes, checkpoints, TRON acceleration/braking pedals, 5× max speed, boss gate counter, softer acceleration sound, shooting sounds, unique boss ships, and a neon TRON finish line.</p>
+    <p>Inspired by arcade racers: clear lanes, checkpoints, NEON acceleration/braking pedals, 5× max speed, boss gate counter, softer acceleration sound, shooting sounds, unique boss ships, and a neon TRON finish line.</p>
     <div class="stageList">
       <div class="stageItem"><b>Stage 1 Objective</b><span>Clear ×2, ×3 and ×4. Smash 4 correct gates in each table, then defeat Boss 1.</span></div>
       <div class="stageItem"><b>Stage 2 Objective</b><span>Clear ×5, ×6, ×7 and ×8. Then defeat Boss 2.</span></div>
-      <div class="stageItem"><b>Final Stage Objective</b><span>Clear ×9 to ×12, defeat the Final Boss, then cross the TRON finish portal.</span></div>
+      <div class="stageItem"><b>Final Stage Objective</b><span>Clear ×9 to ×12, defeat the Final Boss, then cross the NEON finish portal.</span></div>
     </div>
     <div class="row">
       <button id="startBtn" class="bigBtn" onclick="if(window.startGame) window.startGame(false)">Start New Race</button>
@@ -853,7 +853,7 @@ function getStageProgressInfo() {
     stage: 3,
     title: "Final Stage",
     objective: `Clear ×9 to ×${state.finalTable}, defeat the Final Boss, then cross the finish portal.`,
-    accomplished: `You defeated the Final Boss. Cross the finish portal to escape the TRON grid.`
+    accomplished: `You defeated the Final Boss. Cross the finish portal to escape the NEON grid.`
   };
 }
 
@@ -1256,7 +1256,7 @@ function buildStars() {
 }
 
 function curveStrength() {
-  // TRON-like S-bends, but kept playable for pupils.
+  // NEON-like S-bends, but kept playable for pupils.
   // Controls remain simple: left lane, middle lane, right lane.
   if (state.table <= 3) return 1.6;
   if (state.table <= 5) return 2.2;
@@ -1266,7 +1266,7 @@ function curveStrength() {
 
 function curveAt(z) {
   const amp = curveStrength();
-  // Smooth TRON S-bends. Visible, but not too hard to control.
+  // Smooth NEON S-bends. Visible, but not too hard to control.
   return Math.sin(distance * .030 + z * .032) * amp +
          Math.sin(distance * .014 + z * .020) * amp * .35;
 }
@@ -2252,7 +2252,7 @@ function defeatBoss() {
 
   if (final) {
     accomplishedText = "You defeated the Final Boss. One last job remains.";
-    nextObjective = "Cross the TRON finish portal to complete the mission.";
+    nextObjective = "Cross the NEON finish portal to complete the mission.";
     saveRaceCheckpoint({
       stageLabel: "Final Boss defeated",
       completedFinalBoss: true
@@ -2260,7 +2260,7 @@ function defeatBoss() {
     showStageCard("Final Boss Defeated!", accomplishedText, nextObjective);
     state.finishLine = spawnFinishLine(-125);
     state.waitingForNextGate = 0;
-    toast("Final boss defeated! Cross the TRON finish line!");
+    toast("Final boss defeated! Cross the NEON finish line!");
   } else {
     state.table++;
     state.correctInTable = 0;
@@ -2570,7 +2570,7 @@ function spawnFinishLine(z) {
   const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .96 });
   const blackMat = new THREE.MeshBasicMaterial({ color: 0x02030b, transparent: true, opacity: .96 });
 
-  // TRON portal frame
+  // NEON portal frame
   const top = new THREE.Mesh(new THREE.BoxGeometry(16.5, .28, .28), cyanMat);
   top.position.y = 5.2;
   const left = new THREE.Mesh(new THREE.BoxGeometry(.28, 8.6, .28), cyanMat);
@@ -2599,7 +2599,7 @@ function spawnFinishLine(z) {
   label.scale.set(5.6, 1.0, 1);
   group.add(label);
 
-  const portalLabel = makeTextSprite("TRON PORTAL", 0xff2bd6, "label");
+  const portalLabel = makeTextSprite("NEON PORTAL", 0xff2bd6, "label");
   portalLabel.position.set(0, 2.75, .12);
   portalLabel.scale.set(5.2, .88, 1);
   group.add(portalLabel);
@@ -2657,9 +2657,9 @@ function win() {
   $("center").classList.remove("hidden");
   $("center").innerHTML = `
     <h1>Mission Complete!</h1>
-    <p>You crossed the neon TRON finishing line and escaped the alien grid.</p>
+    <p>You crossed the neon finishing line and escaped the alien grid.</p>
     <p><b>Score:</b> ${state.score} &nbsp; <b>Best streak:</b> ${state.streak}</p>
-    <p><b>Rank:</b> ${state.score >= 9000 ? "TRON Math Champion" : state.score >= 5500 ? "Hyper Racer" : "Neon Blaster"}</p>
+    <p><b>Rank:</b> ${state.score >= 9000 ? "NEON Math Champion" : state.score >= 5500 ? "Hyper Racer" : "Neon Blaster"}</p>
     <div class="row"><button class="bigBtn" onclick="location.reload()">Race Again</button></div>
   `;
 }
